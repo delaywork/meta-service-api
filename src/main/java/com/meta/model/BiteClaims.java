@@ -1,4 +1,4 @@
-package com.meta.utils.pojo;
+package com.meta.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;

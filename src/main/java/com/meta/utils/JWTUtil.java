@@ -2,9 +2,9 @@ package com.meta.utils;
 
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
-import com.meta.utils.pojo.BiteClaims;
-import com.meta.utils.pojo.RandomKeyResponse;
-import com.meta.utils.pojo.TokenResponse;
+import com.meta.model.BiteClaims;
+import com.meta.model.RandomKeyResponse;
+import com.meta.model.TokenResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.log4j.Log4j2;

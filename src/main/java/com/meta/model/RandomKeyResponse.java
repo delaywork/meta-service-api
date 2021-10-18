@@ -1,4 +1,4 @@
-package com.meta.utils.pojo;
+package com.meta.model;
 
 import lombok.Builder;
 import lombok.Data;

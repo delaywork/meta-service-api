@@ -1,6 +1,6 @@
 package com.meta.utils;
 
-import com.meta.utils.pojo.RandomKeyResponse;
+import com.meta.model.RandomKeyResponse;
 import io.jsonwebtoken.security.Keys;
 
 import java.security.Key;
