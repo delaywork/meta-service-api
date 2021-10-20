@@ -15,12 +15,12 @@ import lombok.experimental.Tolerate;
 
 /**
  * @Author Martin
- * 阅读进度表
+ * 阅读次数
  */
 @Data
 @Builder
-@TableName(value="read_schedule")
-public class ReadSchedule extends BaseModel {
+@TableName(value="read_times")
+public class ReadTime extends BaseModel {
 
     // 主键ID 使用雪花算法生成
     @TableId(value = "id",type = IdType.NONE)
@@ -36,21 +36,17 @@ public class ReadSchedule extends BaseModel {
     @TableField(value = "source_type")
     private DataRoomTypeEnum sourceType;
 
-    // 首次阅读时间
-    @TableField(value = "first_time")
-    private Long firstTime;
-
-    // 最后阅读时间
-    @TableField(value = "last_time")
-    private Long lastTime;
+    // 开始阅读时间
+    @TableField(value = "start_time")
+    private Long startTime;
 
     // 阅读时长
     @TableField(value = "read_time")
     private Long readTime;
 
-    // 当前阅读页
-    @TableField(value = "current_page")
-    private Integer currentPage;
+    // 主要阅读页码 (使用 json 序列化形式存储，json: {页码：时长})
+    @TableField(value = "read_content")
+    private String readContent;
 
     // 阅读人员 id
     @TableField(value = "account_id")
@@ -62,6 +58,6 @@ public class ReadSchedule extends BaseModel {
     private AccountTypeEnum accountType;
 
     @Tolerate
-    public ReadSchedule(){}
+    public ReadTime(){}
 
 }

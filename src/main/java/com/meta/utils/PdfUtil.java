@@ -39,16 +39,13 @@ public class PdfUtil {
             over.setGState(gs1);
             pageSize = reader.getPageSize(i);
             float width = pageSize.getWidth();
-            // 如果水印信息过长，导致偏移量过大，进行处理
+            // 水印信息过长，导致偏移量过大，进行处理
             float xOffset = offset, yOffset = offset;
             float initX = initXY, initY = initXY;
-            System.out.println("offset / width:"+offset / width);
             float ratio = (offset / width);
             width = width*2;
             xOffset = offset/(int)((ratio+1)*2);
             initX = width/2*-1;
-            System.out.println("xOffset:"+xOffset);
-            System.out.println("width:"+width);
             // y轴偏移
             for (float y=initY; y<pageSize.getHeight()*1.5; y+=yOffset){
                 // x轴偏移

@@ -1,0 +1,33 @@
+package com.meta.model.request;
+
+import com.meta.model.enums.AccountTypeEnum;
+import com.meta.model.enums.DataRoomTypeEnum;
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.Tolerate;
+
+@Data
+@Builder
+public class AddReadTimeRequest {
+
+    // 阅读源 id
+    private Long sourceId;
+
+    // 阅读源类型
+    private DataRoomTypeEnum sourceType;
+
+    // 开始阅读时间
+    private Long startTime;
+
+    // 当前阅读页码
+    private Integer currentPage;
+
+    // 阅读人员 id
+    private Long accountId;
+
+    // 阅读人员类型
+    private AccountTypeEnum accountType;
+
+    @Tolerate
+    public AddReadTimeRequest(){}
+}

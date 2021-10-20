@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class FastRunTimeException extends RuntimeException {
 
-    private String code = "-1";
-    private String message ;
+    private String code;
+    private String message;
 
     public FastRunTimeException(String message) {
         this.message = message;

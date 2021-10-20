@@ -1,5 +1,6 @@
 package com.meta.utils;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.BiteClaims;
@@ -18,6 +19,7 @@ import java.util.*;
 @Log4j2
 public class JWTUtil {
 
+    static RedisUtil redisUtils = SpringUtil.getBean(RedisUtil.class);
     private final static String ACCOUNT_ID = "accountId";
     private final static String LOGIN_TIME = "loginTime";
     private final static String VALIDITY_TIME = "validityTime";
