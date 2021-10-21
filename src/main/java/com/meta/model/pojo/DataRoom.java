@@ -39,6 +39,10 @@ public class DataRoom extends BaseModel {
     @TableField(value = "name")
     private String name;
 
+    // 云存储中的唯一命名
+    @TableField(value = "cloud_key")
+    private String cloudKey;
+
     // 描述
     @TableField(value = "describe")
     private String describe;
@@ -50,6 +54,10 @@ public class DataRoom extends BaseModel {
     // 文件地址（类型为"文件夹"则为空）
     @TableField(value = "url")
     private String url;
+
+    // 用户id
+    @TableField(value = "account_id")
+    private Long accountId;
 
     // 操作人员id
     @TableField(value = "operation_account_id")

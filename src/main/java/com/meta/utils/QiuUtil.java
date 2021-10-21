@@ -28,7 +28,7 @@ public class QiuUtil {
     private String domain;
 
     // 上传本地文件(默认不指定key的情况下，以文件内容的hash值作为文件名)
-    public void uploadLocalFile(String localFilePath, String key){
+    public String uploadLocalFile(String localFilePath, String key){
         //构造一个带指定 Region 对象的配置类
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
@@ -38,13 +38,15 @@ public class QiuUtil {
             Response response = uploadManager.put(localFilePath, key, upToken);
             //解析上传成功的结果
             DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
+            return domain + "/" + key;
         } catch (QiniuException ex) {
             log.info("文件上传失败，localFilePath:{},key:{}", localFilePath, key);
+            return null;
         }
     }
 
     // 上传流文件
-    public void uploadStream(MultipartFile file, String key){
+    public String uploadStream(MultipartFile file, String key){
         //构造一个带指定 Region 对象的配置类
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
@@ -54,25 +56,21 @@ public class QiuUtil {
             Response response = uploadManager.put(file.getInputStream(),key,upToken,null, null);
             //解析上传成功的结果
             DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
+            System.out.println(putRet.key);
+            System.out.println(putRet.hash);
+            System.out.println(domain + "/" + key);
+            return domain + "/" + key;
         } catch (Exception ex) {
             log.info("文件上传失败,key:{}", key);
+            return null;
         }
     }
 
     // 下载私有空间文件
-    public String downloadPrivate(String key, Long expireInSeconds){
-        DownloadUrl url = new DownloadUrl(domain, true, key);
-//        url.setAttname(attname) // 配置 attname
-//                .setFop(fop) // 配置 fop
-//                .setStyle(style, styleSeparator, styleParam) // 配置 style
+    public String downloadPrivate(String baseUrl){
         Auth auth = Auth.create(accessKey, secretKey);
-        String urlString = null;
-        try {
-            urlString = url.buildURL(auth, expireInSeconds);
-        } catch (QiniuException e) {
-            log.info("文件下载失败,key:{}", key);
-        }
-        return urlString;
+        String downloadUrl = auth.privateDownloadUrl(baseUrl);
+        return downloadUrl;
     }
 
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum DataRoomCloudEnum {
     AZURE("AZURE","azure"),
+    QIU("QIU","qiu"),
     ;
 
     @EnumValue

@@ -6,11 +6,14 @@ import com.meta.mapper.ReadTimesMapper;
 import com.meta.model.pojo.ReadTime;
 import com.meta.model.request.AddReadTimeRequest;
 import com.meta.model.request.GetReadTimeRequest;
+import com.meta.model.request.QueryReadTimeRequest;
 import com.meta.model.request.UpdateReadTimeRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Log4j2
 @Service
@@ -71,6 +74,21 @@ public class ReadTimeServiceImpl {
         ReadTime readTime = readTimesMapper.selectOne(wrapper);
         return readTime;
     }
+
+    /**
+     * 查询阅读次数
+     * */
+    public List<ReadTime> queryReadTime(QueryReadTimeRequest request, Long accountId){
+        QueryWrapper<ReadTime> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(ReadTime::getSourceId, request.getSourceId())
+                .eq(ReadTime::getSourceType, request.getSourceType())
+                .eq(ReadTime::getAccountId, accountId)
+                .eq(ReadTime::getDataIsDeleted, false)
+                .orderByDesc(ReadTime::getId);
+        List<ReadTime> readTimes = readTimesMapper.selectList(wrapper);
+        return readTimes;
+    }
+
 
 
 }
