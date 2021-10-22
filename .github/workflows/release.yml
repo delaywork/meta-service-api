@@ -1,4 +1,4 @@
-# Release pipeline for api in Project QUIPLAW
+# Release pipeline for api in Project META
 
 name: META DEV Pipeline
 
@@ -41,7 +41,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/release/development' }}
     environment:
       name: development
-      url: ${{ secrets.ENV_URL }}
+      url: ${{ secrets.ENV_APP_URL }}
 
     steps:
       - name: Install SSH Key
@@ -66,7 +66,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/release/staging' }}
     environment:
       name: staging
-      url: ${{ secrets.ENV_URL }}
+      url: ${{ secrets.ENV_APP_URL }}
 
     steps:
       - name: Install SSH Key
@@ -91,7 +91,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/release/production' }}
     environment:
       name: production
-      url: ${{ secrets.ENV_URL }}
+      url: ${{ secrets.ENV_APP_URL }}
 
     steps:
       - name: Install SSH Key
