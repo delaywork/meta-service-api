@@ -43,7 +43,7 @@ public class DataRoomServiceImpl {
      * 新增文件
      */
     @Transactional
-    public void addFile(MultipartFile file, Long accountId, Long parentId){
+    public void addFile(MultipartFile file, Long accountId, Long parentId, Long tenantId){
         // 获取文件名
         String name = file.getOriginalFilename();
         String cloudKey = name + IdUtil.simpleUUID();
@@ -51,7 +51,7 @@ public class DataRoomServiceImpl {
         String url = qiuUtil.uploadStream(file, cloudKey);
         // 初始化新增文件
         DataRoom dataRoom = new DataRoom();
-        dataRoom.setAccountId(accountId);
+        dataRoom.setTenantId(tenantId);
         dataRoom.setParentId(parentId);
         dataRoom.setType(DataRoomTypeEnum.PDF);
         dataRoom.setCloud(DataRoomCloudEnum.QIU);
@@ -80,10 +80,10 @@ public class DataRoomServiceImpl {
      * 修改文件（将历史记录转移到 VersionHistory）
      * */
     @Transactional
-    public void updateFile(MultipartFile file, Long accountId, Long fileId){
-        DataRoom dataRoom = this.getFile(fileId, accountId);
+    public void updateFile(MultipartFile file, Long accountId, Long fileId, Long tenantId){
+        DataRoom dataRoom = this.getFile(fileId, accountId, tenantId);
         // 将文件移动到 VersionHistory
-        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).accountId(accountId).cloudKey(dataRoom.getCloudKey()).describe(dataRoom.getDescribe())
+        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).cloudKey(dataRoom.getCloudKey()).describe(dataRoom.getDescribe())
                 .operationAccountId(accountId).name(dataRoom.getName()).type(dataRoom.getType()).url(dataRoom.getUrl()).build();
         versionHistoryService.add(versionHistory);
         // 获取文件名
@@ -100,10 +100,10 @@ public class DataRoomServiceImpl {
      * 修改文件夹名称
      * */
     @Transactional
-    public void updateFolderName(UpdateFolderNameRequest request, Long accountId){
+    public void updateFolderName(UpdateFolderNameRequest request, Long accountId, Long tenantId){
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(DataRoom::getId,request.getFolderId()).eq(DataRoom::getAccountId,accountId)
-                .set(DataRoom::getName,request.getName());
+        wrapper.lambda().eq(DataRoom::getId,request.getFolderId()).eq(DataRoom::getTenantId,accountId)
+                .set(DataRoom::getName, request.getName()).set(DataRoom::getOperationAccountId, accountId);
         dataRoomMapper.update(DataRoom.builder().build(), wrapper);
     }
 
@@ -111,14 +111,14 @@ public class DataRoomServiceImpl {
      * 移动文件/文件夹
      * */
     @Transactional
-    public void moveDataRoom(MoveDataRoomRequest request, Long accountId){
+    public void moveDataRoom(MoveDataRoomRequest request, Long accountId, Long tenantId){
         // 校验 targetFolderId 是否是文件夹类型
         DataRoom dataRoom = dataRoomMapper.selectById(request.getTargetFolderId());
         if (ObjectUtils.isEmpty(dataRoom)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (dataRoom.getAccountId() != accountId){
+        if (dataRoom.getTenantId() != tenantId){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
@@ -132,7 +132,7 @@ public class DataRoomServiceImpl {
         }
         // 修改 folderId 文件父节点
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(DataRoom::getId,request.getFolderId()).eq(DataRoom::getAccountId,accountId)
+        wrapper.lambda().eq(DataRoom::getId,request.getFolderId())
                 .set(DataRoom::getParentId,request.getTargetFolderId());
         dataRoomMapper.update(DataRoom.builder().build(), wrapper);
     }
@@ -140,14 +140,14 @@ public class DataRoomServiceImpl {
     /**
      * 删除文件/文件夹
      * */
-    public void deleteDataRoom(Long dataRoomId, Long accountId){
+    public void deleteDataRoom(Long dataRoomId, Long accountId, Long tenantId){
         // 查询dataRoom（如果是文件夹还要遍历删除子文件夹和文件）
         DataRoom dataRoom = dataRoomMapper.selectById(dataRoomId);
         if (ObjectUtils.isEmpty(dataRoom)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (dataRoom.getAccountId() != accountId){
+        if (dataRoom.getTenantId() != tenantId){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
@@ -159,7 +159,8 @@ public class DataRoomServiceImpl {
         this.recursiveDelete(dataRoomId);
         // 删除当前目录
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(DataRoom::getId,dataRoomId).set(DataRoom::getDataIsDeleted,true);
+        wrapper.lambda().eq(DataRoom::getId,dataRoomId)
+                .set(DataRoom::getDataIsDeleted,true).set(DataRoom::getOperationAccountId, accountId);
         dataRoomMapper.update(null, wrapper);
 
     }
@@ -201,15 +202,15 @@ public class DataRoomServiceImpl {
      * 初始化根目录(以用户id作为根目录的id)
      * */
     @Transactional
-    public void initFolder(Long accountId){
-        DataRoom dataRoom = DataRoom.builder().id(accountId).type(DataRoomTypeEnum.FOLDER).accountId(accountId).name(root).operationAccountId(accountId).build();
+    public void initFolder(Long accountId, Long tenantId){
+        DataRoom dataRoom = DataRoom.builder().id(accountId).type(DataRoomTypeEnum.FOLDER).tenantId(tenantId).name(root).operationAccountId(accountId).build();
         addFolder(dataRoom);
     }
 
     /**
      * 根据id查询文件夹的子文件
      * */
-    public List<DataRoom> getFolderChild(Long dataRoomId, Long accountId){
+    public List<DataRoom> getFolderChild(Long dataRoomId, Long accountId, Long tenantId){
         QueryWrapper<DataRoom> wrapper = new QueryWrapper<>();
         if (ObjectUtils.isEmpty(dataRoomId)){
             // 目录为空查询根目录
@@ -218,7 +219,7 @@ public class DataRoomServiceImpl {
             // 目录不为空查询目录
             wrapper.lambda().eq(DataRoom::getId, dataRoomId);
         }
-        wrapper.lambda().eq(DataRoom::getParentId,dataRoomId).eq(DataRoom::getAccountId, accountId).eq(DataRoom::getDataIsDeleted, false)
+        wrapper.lambda().eq(DataRoom::getParentId,dataRoomId).eq(DataRoom::getTenantId, tenantId).eq(DataRoom::getDataIsDeleted, false)
                 .orderByDesc(DataRoom::getId);
         List<DataRoom> dataRooms = dataRoomMapper.selectList(wrapper);
         return dataRooms;
@@ -227,7 +228,7 @@ public class DataRoomServiceImpl {
     /**
      * 根据id查询文件
      * */
-    public DataRoom getFile(Long dataRoomId, Long accountId){
+    public DataRoom getFile(Long dataRoomId, Long accountId, Long tenantId){
         QueryWrapper<DataRoom> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(DataRoom::getId,dataRoomId).eq(DataRoom::getType,DataRoomTypeEnum.PDF).eq(DataRoom::getDataIsDeleted, false);
         DataRoom dataRoom = dataRoomMapper.selectOne(wrapper);
@@ -235,7 +236,7 @@ public class DataRoomServiceImpl {
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (dataRoom.getAccountId() != accountId){
+        if (dataRoom.getTenantId() != tenantId){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
@@ -249,9 +250,9 @@ public class DataRoomServiceImpl {
     /**
      * 下载文件
      * */
-    public String downloadPrivate(Long fileId, Long accountId){
+    public String downloadPrivate(Long fileId, Long accountId, Long tenantId){
         // 查询文件
-        DataRoom file = this.getFile(fileId, accountId);
+        DataRoom file = this.getFile(fileId, accountId, tenantId);
         if (StringUtils.isEmpty(file.getUrl())){
             // 文件不存在有效地址
             throw new FastRunTimeException(ErrorEnum.文件不存在有效地址);

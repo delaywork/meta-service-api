@@ -20,6 +20,9 @@ public class BiteClaims implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long accountId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long tenantId;
+
     private Long times;
 
     private String tokenType;

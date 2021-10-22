@@ -23,6 +23,18 @@ public class Account extends BaseModel {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
+    // openid
+    @TableField(value = "openid")
+    private String openid;
+
+    // unionid
+    @TableField(value = "unionid")
+    private String unionid;
+
+    // 微信认证状态（1：进行过微信认证， 0：未进行过微信认证）
+    @TableField(value = "unionid")
+    private Boolean wechatAuth;
+
     // 用户名
     @TableField(value = "name")
     private String name;
@@ -42,6 +54,11 @@ public class Account extends BaseModel {
     // 用户密码盐
     @TableField(value = "password_salt")
     private String passwordSalt;
+
+    // 租户id
+    @TableField(value = "tenant_id")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long tenantId;
 
     @Tolerate
     public Account(){}

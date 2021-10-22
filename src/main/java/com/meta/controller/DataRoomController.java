@@ -28,7 +28,7 @@ public class DataRoomController {
     public ReturnData addFile(@RequestPart MultipartFile file, @ApiParam(value = "父级菜单") @RequestParam() Long parentId, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.addFile(file, biteClaims.getAccountId(), parentId);
+            dataRoomService.addFile(file, biteClaims.getAccountId(), parentId, biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -41,7 +41,7 @@ public class DataRoomController {
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
             DataRoom dataRoom = DataRoom.builder().name(request.getName()).describe(request.getDescribe())
-                    .parentId(request.getParentId()).accountId(biteClaims.getAccountId()).operationAccountId(biteClaims.getAccountId()).build();
+                    .parentId(request.getParentId()).tenantId(biteClaims.getTenantId()).operationAccountId(biteClaims.getAccountId()).build();
             dataRoomService.addFolder(dataRoom);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
@@ -54,7 +54,7 @@ public class DataRoomController {
     public ReturnData updateFile(@RequestPart MultipartFile file, @ApiParam(value = "父级菜单") @RequestParam() Long fileId, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.updateFile(file,biteClaims.getAccountId(),fileId);
+            dataRoomService.updateFile(file, biteClaims.getAccountId(), fileId, biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -66,7 +66,7 @@ public class DataRoomController {
     public ReturnData updateFolderName(@RequestBody UpdateFolderNameRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.updateFolderName(request,biteClaims.getAccountId());
+            dataRoomService.updateFolderName(request, biteClaims.getAccountId(), biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -78,7 +78,7 @@ public class DataRoomController {
     public ReturnData moveDataRoom(@RequestBody MoveDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.moveDataRoom(request, biteClaims.getAccountId());
+            dataRoomService.moveDataRoom(request, biteClaims.getAccountId(), biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -90,7 +90,7 @@ public class DataRoomController {
     public ReturnData deleteDataRoom(@RequestBody IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.deleteDataRoom(request.getId(), biteClaims.getAccountId());
+            dataRoomService.deleteDataRoom(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -102,7 +102,7 @@ public class DataRoomController {
     public ReturnData<List<DataRoom>> getFolderChild(@RequestBody IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.getFolderChild(request.getId(), biteClaims.getAccountId()));
+            return ReturnData.success(dataRoomService.getFolderChild(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId()));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -114,7 +114,7 @@ public class DataRoomController {
         try{
             // TODO 查询历史版本
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.getFile(request.getId(), biteClaims.getAccountId()));
+            return ReturnData.success(dataRoomService.getFile(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId()));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -125,7 +125,7 @@ public class DataRoomController {
     public ReturnData<String> downloadPrivate(@RequestBody IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.downloadPrivate(request.getId(), biteClaims.getAccountId()));
+            return ReturnData.success(dataRoomService.downloadPrivate(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId()));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }

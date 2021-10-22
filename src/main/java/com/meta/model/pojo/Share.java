@@ -66,6 +66,11 @@ public class Share extends BaseModel {
     @TableField(value = "share_account_id")
     private Long shareAccountId;
 
+    // 租户id
+    @TableField(value = "tenant_id")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long tenantId;
+
     @Tolerate
     public Share(){}
 

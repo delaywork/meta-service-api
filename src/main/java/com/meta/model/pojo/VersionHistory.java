@@ -51,9 +51,10 @@ public class VersionHistory extends BaseModel {
     @TableField(value = "url")
     private String url;
 
-    // 用户id
-    @TableField(value = "account_id")
-    private Long accountId;
+    // 租户id
+    @TableField(value = "tenant_id")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Long tenantId;
 
     // 操作人员id
     @TableField(value = "operation_account_id")
