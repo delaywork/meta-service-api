@@ -33,7 +33,7 @@ jobs:
             port=${{ env.PORT }}
           file: Dockerfile
           push: true
-          tags: ghcr.io/${{ GITHUB_REPOSITORY }}/${{ env.APP }}:latest
+          tags: ghcr.io/${{ github.repository }}/${{ env.APP }}:latest
           
   deploy-to-dev:
     runs-on: ubuntu-latest
