@@ -1,0 +1,111 @@
+# Release pipeline for api in Project QUIPLAW
+
+name: META DEV Pipeline
+
+on:
+  push:
+    branches: [ release ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      APP: meta-service-api
+      PORT: 8080
+      SDE: prod
+    steps:        
+      - name: Docker Login
+        uses: docker/login-action@v1.9.0
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.PACKAGE_USERNAME }}
+          password: ${{ secrets.PACKAGE_TOKEN }}
+          logout: true
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v2.5.0
+        with:
+          build-args: |
+            sde=${{ env.SDE }}
+            app=${{ env.APP }}
+            port=${{ env.PORT }}
+          file: Dockerfile
+          push: true
+          tags: ghcr.io/$GITHUB_REPOSITORY/${{ env.APP }}:latest
+          
+  deploy-to-dev:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.ref == 'refs/heads/release/development' }}
+    environment:
+      name: development
+      url: ${{ secrets.ENV_URL }}
+
+    steps:
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2.3.0
+        with:
+          key: ${{ secrets.ENV_SSH_KEY }} 
+          name: github-actions
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+      - name: Deploy to SIT
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.ENV_SSH_HOST }}
+          port: ${{ secrets.ENV_SSH_PORT }}
+          username: root
+          key: ${{ secrets.ENV_SSH_KEY }}
+          script: cd /data/dockers/meta/dev && docker-compose pull meta-service-api && docker-compose -p meta-dev up --force-recreate -d meta-service-api && docker image prune -f
+
+  deploy-to-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.ref == 'refs/heads/release/staging' }}
+    environment:
+      name: staging
+      url: ${{ secrets.ENV_URL }}
+
+    steps:
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2.3.0
+        with:
+          key: ${{ secrets.ENV_SSH_KEY }} 
+          name: github-actions
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+      - name: Deploy to SIT
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.ENV_SSH_HOST }}
+          port: ${{ secrets.ENV_SSH_PORT }}
+          username: root
+          key: ${{ secrets.ENV_SSH_KEY }}
+          script: cd /data/dockers/meta/staging && docker-compose pull meta-service-api && docker-compose -p meta-staging up --force-recreate -d meta-service-api && docker image prune -f
+
+  deploy-to-prod:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.ref == 'refs/heads/release/production' }}
+    environment:
+      name: production
+      url: ${{ secrets.ENV_URL }}
+
+    steps:
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2.3.0
+        with:
+          key: ${{ secrets.ENV_SSH_KEY }} 
+          name: github-actions
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+      - name: Deploy to SIT
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.ENV_SSH_HOST }}
+          port: ${{ secrets.ENV_SSH_PORT }}
+          username: root
+          key: ${{ secrets.ENV_SSH_KEY }}
+          script: cd /data/dockers/meta/prod && docker-compose pull meta-service-api && docker-compose -p meta-prod up --force-recreate -d meta-service-api && docker image prune -f

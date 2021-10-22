@@ -188,6 +188,7 @@
     </dependencyManagement>
 
     <build>
+        <finalName>meta-service-api</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
