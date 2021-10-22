@@ -20,7 +20,7 @@ COPY . /app/build
 # Build application
 RUN cd build \
     && mvn clean package -Dmaven.test.skip=true \
-    && mv target/$APP.jar /app/base/ \
+    && mv target/*.jar /app/base/ \
     && rm -rf /app/build
 
 # Set port
