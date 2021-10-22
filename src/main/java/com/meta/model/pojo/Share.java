@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
 import com.meta.model.enums.DataRoomTypeEnum;
+import com.meta.model.enums.ShareSourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -32,7 +33,7 @@ public class Share extends BaseModel {
 
     // 分享源类型
     @TableField(value = "source_type")
-    private DataRoomTypeEnum sourceType;
+    private ShareSourceTypeEnum sourceType;
 
     // 名称
     @TableField(value = "name")
@@ -44,7 +45,7 @@ public class Share extends BaseModel {
 
     // 是否需要水印
     @TableField(value = "have_watermark")
-    private Boolean haveWatermark;
+    private Boolean haveWatermark = true;
 
     // 水印类容
     @TableField(value = "watermark_text")
@@ -52,15 +53,23 @@ public class Share extends BaseModel {
 
     // 失效时间
     @TableField(value = "expire_times")
-    private Long expireTimes;
+    private Long expireTimes = null;
 
     // 密码
     @TableField(value = "password")
-    private String password;
+    private String password = null;
 
     // 访问次数
     @TableField(value = "read_time")
-    private Integer readTime;
+    private Integer readTime = null;
+
+    // 水印文件地址
+    @TableField(value = "watermark_url")
+    private String watermarkUrl;
+
+    // 源文件地址
+    @TableField(value = "source_url")
+    private String sourceUrl;
 
     // 分享人
     @TableField(value = "share_account_id")

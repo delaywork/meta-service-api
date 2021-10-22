@@ -162,7 +162,6 @@ public class DataRoomServiceImpl {
         wrapper.lambda().eq(DataRoom::getId,dataRoomId)
                 .set(DataRoom::getDataIsDeleted,true).set(DataRoom::getOperationAccountId, accountId);
         dataRoomMapper.update(null, wrapper);
-
     }
 
     /**

@@ -8,6 +8,7 @@ import com.meta.model.TokenResponse;
 import com.meta.model.WechatUtilLoginResponse;
 import com.meta.model.pojo.Account;
 import com.meta.model.pojo.Tenant;
+import com.meta.model.request.IdRequest;
 import com.meta.utils.JWTUtil;
 import com.meta.utils.WechatUtil;
 import lombok.extern.log4j.Log4j2;
@@ -72,6 +73,12 @@ public class AccountServiceImpl {
     /**
      * 查询账户信息
      * */
+    public Account getAccountById(Long accountId){
+        QueryWrapper<Account> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(Account::getId, accountId).eq(Account::getDataIsDeleted, true);
+        Account account = accountMapper.selectOne(wrapper);
+        return account;
+    }
 
 
 

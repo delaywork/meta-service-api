@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.enums.AccountTypeEnum;
 import com.meta.model.enums.DataRoomTypeEnum;
+import com.meta.model.enums.ShareSourceTypeEnum;
 import com.meta.model.pojo.ReadTime;
 import com.meta.model.response.vo.ReadTimeVO;
 import lombok.Builder;
@@ -25,7 +26,7 @@ public class ReadRecordResponse {
     private Long sourceId;
 
     // 阅读源类型
-    private DataRoomTypeEnum sourceType;
+    private ShareSourceTypeEnum sourceType;
 
     // 首次阅读时间
     private Long firstTime;

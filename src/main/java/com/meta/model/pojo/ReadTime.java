@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
 import com.meta.model.enums.AccountTypeEnum;
 import com.meta.model.enums.DataRoomTypeEnum;
+import com.meta.model.enums.ShareSourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -34,7 +35,7 @@ public class ReadTime extends BaseModel {
 
     // 阅读源类型
     @TableField(value = "source_type")
-    private DataRoomTypeEnum sourceType;
+    private ShareSourceTypeEnum sourceType;
 
     // 开始阅读时间
     @TableField(value = "start_time")

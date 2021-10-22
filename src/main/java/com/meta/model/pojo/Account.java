@@ -51,6 +51,10 @@ public class Account extends BaseModel {
     @TableField(value = "password")
     private String password;
 
+    // 用户头像
+    @TableField(value = "avatar_url")
+    private String avatarUrl;
+
     // 用户密码盐
     @TableField(value = "password_salt")
     private String passwordSalt;
