@@ -30,28 +30,28 @@ jobs:
             port=8080 
           file: Dockerfile
           push: true
-          tags: ghcr.io/benwk/meta-service-api/meta-service-api:latest
+          tags: ghcr.io/${{ secrets.PACKAGE_ORG }}/meta-service-api/meta-service-api:latest
           
-#   deploy:
-#     runs-on: ubuntu-latest
-#     needs: build
-#     environment:
-#       name: 'sit'
-#       url: 'https://quiplaw-sit.delay.work/api'
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'sit'
+      url: 'https://sit.app.delay.work/meta/api'
 
-#     steps:
-#       - name: Install SSH Key
-#         uses: shimataro/ssh-key-action@v2.3.0
-#         with:
-#           key: ${{ secrets.SSH_PRIVATE_KEY }} 
-#           name: github-actions
-#           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+    steps:
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2.3.0
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }} 
+          name: github-actions
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
-#       - name: Deploy to SIT
-#         uses: appleboy/ssh-action@v0.1.4
-#         with:
-#           host: ${{ secrets.PROD_SERVER_HOST }}
-#           port: ${{ secrets.PROD_SERVER_PORT }}
-#           username: root
-#           key: ${{ secrets.SSH_PRIVATE_KEY }}
-#           script: cd /data/dockers/quiplaw/sit && docker-compose pull service-api && docker-compose -p quiplaw-sit up --force-recreate -d service-api && docker image prune -f
+      - name: Deploy to SIT
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          port: ${{ secrets.PROD_SERVER_PORT }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: cd /data/dockers/meta/sit && docker-compose pull meta-service-api && docker-compose -p meta-sit up --force-recreate -d meta-service-api && docker image prune -f
