@@ -28,3 +28,31 @@
 | B-00001 | 参数不正确 |
 | O-00001 | 第三方调用失败 |
 
+## 环境变量说明
+
+```
+# 服务端口号
+SERVER_PORT=7050
+
+# redis 配置
+REDIS_HOST=redis-master.system-stream-dev1.svc.cluster.local
+REDIS_PORT=6379
+REDIS_PASSWORD=bite
+
+# 数据库配置
+DATASOURCE_DBHOST=mysql.system-stream-dev1.svc.cluster.local:3306
+DATASOURCE_USERNAME=root
+DATASOURCE_PASSWORD=bite
+
+# 七牛云配置
+qiu.accessKey=
+qiu.secretKey=
+qiu.bucket.name=
+qiu.domain=
+
+# 小程序配置
+wechat.appid=
+wechat.secret=
+```
+
+
