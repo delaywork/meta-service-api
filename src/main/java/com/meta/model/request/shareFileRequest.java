@@ -1,24 +1,25 @@
 package com.meta.model.request;
 
-import com.meta.model.enums.DataRoomTypeEnum;
 import com.meta.model.enums.ShareSourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 
+
+/**
+ * @Author Martin
+ */
 @Data
 @Builder
-public class ReadRecordRequest {
+public class shareFileRequest {
 
-    // 阅读源 id
+    // 分享源id
     private Long sourceId;
 
-    // 阅读源类型
+    // 分享源类型
     private ShareSourceTypeEnum sourceType;
 
-    // 当前阅读页
-    private Integer currentPage;
-
     @Tolerate
-    public ReadRecordRequest(){}
+    public shareFileRequest(){}
+
 }

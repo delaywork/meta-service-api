@@ -26,7 +26,7 @@ public class PdfUtil {
         JLabel label = new JLabel();
         label.setText(waterText);
         FontMetrics metrics = label.getFontMetrics(label.getFont());
-        float offset = metrics.stringWidth(label.getText()) + 20;
+        float offset = metrics.stringWidth(label.getText()) + waterText.length();
         float initXY = offset / 2;
         // 设置水印透明度
         PdfGState gs1 = new PdfGState();
@@ -61,10 +61,10 @@ public class PdfUtil {
 
 
     public static void main(String[] args) throws DocumentException, IOException {
-        String src = "/Users/huapeiliang/Documents/Angular6.pdf";
+        String src = "/Users/huapeiliang/Documents/BiteStream技术白皮书.pdf";
         String desrc = "/Users/huapeiliang/Documents/dest.pdf";
         long start = System.currentTimeMillis();
-        manipulatePdf(src, desrc, "MartinHua : 2021-10-19 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        manipulatePdf(src, desrc, "MartinHua : 2021-10-19");
         long end = System.currentTimeMillis();
         System.out.println(end - start);
     }

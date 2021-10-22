@@ -1,6 +1,7 @@
 package com.meta.model.request;
 
 import com.meta.model.enums.DataRoomTypeEnum;
+import com.meta.model.enums.ShareSourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -13,7 +14,7 @@ public class GetRecordByReadSourceRequest {
     private Long sourceId;
 
     // 阅读源类型
-    private DataRoomTypeEnum sourceType;
+    private ShareSourceTypeEnum sourceType;
 
     @Tolerate
     public GetRecordByReadSourceRequest(){}
