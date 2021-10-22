@@ -8,6 +8,7 @@
     <artifactId>meta-service-api</artifactId>
     <version>1.4.0-SNAPSHOT</version>
     <build>
+        <finalName>meta-service-api</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
