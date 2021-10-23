@@ -4,7 +4,7 @@ name: META DEV Pipeline
 
 on:
   push:
-    branches: [ release ]
+    branches: [ release/development ]
 
   workflow_dispatch:
 
