@@ -75,7 +75,7 @@ public class AccountServiceImpl {
      * */
     public Account getAccountById(Long accountId){
         QueryWrapper<Account> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(Account::getId, accountId).eq(Account::getDataIsDeleted, true);
+        wrapper.lambda().eq(Account::getId, accountId).eq(Account::getDataIsDeleted, false);
         Account account = accountMapper.selectOne(wrapper);
         return account;
     }

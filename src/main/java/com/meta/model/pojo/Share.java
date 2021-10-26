@@ -40,8 +40,8 @@ public class Share extends BaseModel {
     private String name;
 
     // 描述
-    @TableField(value = "describe")
-    private String describe;
+    @TableField(value = "note")
+    private String note;
 
     // 是否需要水印
     @TableField(value = "have_watermark")

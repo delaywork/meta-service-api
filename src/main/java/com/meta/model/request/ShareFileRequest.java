@@ -11,7 +11,7 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-public class shareFileRequest {
+public class ShareFileRequest {
 
     // 分享源id
     private Long sourceId;
@@ -20,6 +20,6 @@ public class shareFileRequest {
     private ShareSourceTypeEnum sourceType;
 
     @Tolerate
-    public shareFileRequest(){}
+    public ShareFileRequest(){}
 
 }

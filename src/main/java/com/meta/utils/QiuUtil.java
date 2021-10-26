@@ -1,5 +1,6 @@
 package com.meta.utils;
 
+import cn.hutool.core.util.IdUtil;
 import com.google.gson.Gson;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
@@ -46,19 +47,22 @@ public class QiuUtil {
     }
 
     // 上传流文件
-    public String uploadStream(MultipartFile file, String key){
+    public String uploadStream(MultipartFile file){
         //构造一个带指定 Region 对象的配置类
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
         Auth auth = Auth.create(accessKey, secretKey);
         String upToken = auth.uploadToken(bucketName);
+        // 获取文件名
+        String fileName = file.getOriginalFilename().replace(" ","");
+        int index = fileName.lastIndexOf(".");
+        String fileNamePrefix = fileName.substring(0, index);
+        String fileNameSuffix = fileName.substring(index);
+        String key = fileNamePrefix+IdUtil.simpleUUID()+fileNameSuffix;
         try {
             Response response = uploadManager.put(file.getInputStream(),key,upToken,null, null);
             //解析上传成功的结果
             DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
-            System.out.println(putRet.key);
-            System.out.println(putRet.hash);
-            System.out.println(domain + "/" + key);
             return domain + "/" + key;
         } catch (Exception ex) {
             log.info("文件上传失败,key:{}", key);

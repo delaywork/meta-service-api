@@ -45,10 +45,9 @@ public class DataRoomServiceImpl {
     @Transactional
     public void addFile(MultipartFile file, Long accountId, Long parentId, Long tenantId){
         // 获取文件名
-        String name = file.getOriginalFilename();
-        String cloudKey = name + IdUtil.simpleUUID();
+        String name = file.getOriginalFilename().replace(" ","");
         // 上传文件到七牛
-        String url = qiuUtil.uploadStream(file, cloudKey);
+        String url = qiuUtil.uploadStream(file);
         // 初始化新增文件
         DataRoom dataRoom = new DataRoom();
         dataRoom.setTenantId(tenantId);
@@ -57,7 +56,6 @@ public class DataRoomServiceImpl {
         dataRoom.setCloud(DataRoomCloudEnum.QIU);
         dataRoom.setOperationAccountId(accountId);
         dataRoom.setName(name);
-        dataRoom.setCloudKey(cloudKey);
         dataRoom.setUrl(url);
         dataRoomMapper.insert(dataRoom);
     }
@@ -83,14 +81,13 @@ public class DataRoomServiceImpl {
     public void updateFile(MultipartFile file, Long accountId, Long fileId, Long tenantId){
         DataRoom dataRoom = this.getFile(fileId, accountId, tenantId);
         // 将文件移动到 VersionHistory
-        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).cloudKey(dataRoom.getCloudKey()).describe(dataRoom.getDescribe())
-                .operationAccountId(accountId).name(dataRoom.getName()).type(dataRoom.getType()).url(dataRoom.getUrl()).build();
+        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).note(dataRoom.getNote())
+                .operationAccountId(accountId).name(dataRoom.getName()).type(dataRoom.getType()).url(dataRoom.getUrl()).cloud(dataRoom.getCloud()).build();
         versionHistoryService.add(versionHistory);
         // 获取文件名
-        String name = file.getOriginalFilename();
-        String cloudKey = name + IdUtil.simpleUUID();
+        String name = file.getOriginalFilename().replace(" ","");
         // 上传文件到七牛
-        String url = qiuUtil.uploadStream(file, cloudKey);
+        String url = qiuUtil.uploadStream(file);
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
         wrapper.lambda().eq(DataRoom::getId, fileId).set(DataRoom::getName,name).set(DataRoom::getUrl,url);
         dataRoomMapper.update(DataRoom.builder().build(), wrapper);
@@ -102,7 +99,7 @@ public class DataRoomServiceImpl {
     @Transactional
     public void updateFolderName(UpdateFolderNameRequest request, Long accountId, Long tenantId){
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(DataRoom::getId,request.getFolderId()).eq(DataRoom::getTenantId,accountId)
+        wrapper.lambda().eq(DataRoom::getId,request.getFolderId()).eq(DataRoom::getTenantId,tenantId)
                 .set(DataRoom::getName, request.getName()).set(DataRoom::getOperationAccountId, accountId);
         dataRoomMapper.update(DataRoom.builder().build(), wrapper);
     }
@@ -235,7 +232,7 @@ public class DataRoomServiceImpl {
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (dataRoom.getTenantId() != tenantId){
+        if (!dataRoom.getTenantId().equals(tenantId)){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }

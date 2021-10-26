@@ -26,6 +26,7 @@ public class Swagger2 {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
+//                .paths(PathSelectors.regex(""))
                 .apis(RequestHandlerSelectors.basePackage("com.meta.controller"))
                 .paths(PathSelectors.any())
                 .build();

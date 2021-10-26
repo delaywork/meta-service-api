@@ -39,13 +39,9 @@ public class DataRoom extends BaseModel {
     @TableField(value = "name")
     private String name;
 
-    // 云存储中的唯一命名
-    @TableField(value = "cloud_key")
-    private String cloudKey;
-
     // 描述
-    @TableField(value = "describe")
-    private String describe;
+    @TableField(value = "note")
+    private String note;
 
     // 云
     @TableField(value = "cloud")
