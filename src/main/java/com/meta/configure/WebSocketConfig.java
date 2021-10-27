@@ -21,4 +21,5 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 //允许跨域
                 .setAllowedOrigins("*");
     }
+
 }
