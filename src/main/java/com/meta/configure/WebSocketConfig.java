@@ -1,6 +1,6 @@
 package com.meta.configure;
 
-import com.meta.websocket.WebSocketHandler;
+import com.meta.websocket.ReadRecordHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -12,12 +12,12 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private ReadRecordHandler readRecordHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry
-                .addHandler(webSocketHandler, "/msg")//websocket连接地址 ws://localhost:8080/msg
+                .addHandler(readRecordHandler, "/read/record")//websocket连接地址 ws://localhost:port/read/record
                 //允许跨域
                 .setAllowedOrigins("*");
     }

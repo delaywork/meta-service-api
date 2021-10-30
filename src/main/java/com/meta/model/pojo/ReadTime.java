@@ -41,11 +41,11 @@ public class ReadTime extends BaseModel {
     @TableField(value = "start_time")
     private Long startTime;
 
-    // 阅读时长
+    // 阅读时长 (单位：秒)
     @TableField(value = "read_time")
     private Long readTime;
 
-    // 主要阅读页码 (使用 json 序列化形式存储，json: {页码：时长})
+    // 主要阅读页码 (使用 json 序列化形式存储，json: {页码：时长 (单位：秒)})
     @TableField(value = "read_content")
     private String readContent;
 

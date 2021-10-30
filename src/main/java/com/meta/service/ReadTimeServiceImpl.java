@@ -40,6 +40,17 @@ public class ReadTimeServiceImpl {
     }
 
     /**
+     * 新增空白阅读次数
+     * */
+    public ReadTime addBlank(AddReadTimeRequest request){
+        ReadTime readTime = ReadTime.builder().sourceId(request.getSourceId()).sourceType(request.getSourceType())
+                .accountId(request.getAccountId()).accountType(request.getAccountType()).startTime(request.getStartTime())
+                .readTime(readingTime).build();
+        readTimesMapper.insert(readTime);
+        return readTime;
+    }
+
+    /**
      * 更新阅读次数
      * */
     public ReadTime update(UpdateReadTimeRequest request){

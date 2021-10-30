@@ -45,7 +45,7 @@ public class ReadSchedule extends BaseModel {
     @TableField(value = "last_time")
     private Long lastTime;
 
-    // 阅读时长
+    // 阅读时长 (单位：秒)
     @TableField(value = "read_time")
     private Long readTime;
 

@@ -2,29 +2,23 @@ package com.meta.websocket;
 
 import com.google.gson.Gson;
 import com.meta.model.request.ReadRecordRequest;
+import com.meta.model.request.ReadRecordWebSocketRequest;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 @Log4j2
 @Component
-public class WebSocketHandler extends AbstractWebSocketHandler {
+public class ReadRecordHandler extends AbstractWebSocketHandler {
+
+    @Autowired
+    private WebSocketService webSocketService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        //socket连接成功后触发
-        log.info("建立websocket连接");
         WebSocketSessionManager.add(session.getId(), session);
-    }
-
-    @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // 客户端发送普通文件信息时触发
-        log.info("发送文本消息");
-        // 获得客户端传来的消息
-        String payload = message.getPayload();
-        log.info("服务端接收到消息 " + payload);
     }
 
     @Override
@@ -32,14 +26,10 @@ public class WebSocketHandler extends AbstractWebSocketHandler {
         if (message.getPayloadLength() == 0) {
             return;
         }
-        ReadRecordRequest msg = new Gson().fromJson(message.getPayload().toString(), ReadRecordRequest.class);
-        log.info("服务端接收到消息 " + msg.getSourceId());
-    }
+        ReadRecordWebSocketRequest request = new Gson().fromJson(message.getPayload().toString(), ReadRecordWebSocketRequest.class);
+        // 更新阅读次数中的阅读时间
 
-    @Override
-    protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
-        //客户端发送二进信息是触发
-        log.info("发送二进制消息");
+        // 更新阅读记录中的阅读时间
     }
 
     @Override
