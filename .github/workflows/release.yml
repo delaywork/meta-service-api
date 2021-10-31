@@ -58,7 +58,7 @@ jobs:
           port: ${{ secrets.ENV_SSH_PORT }}
           username: root
           key: ${{ secrets.ENV_SSH_KEY }}
-          script: cd /data/dockers/meta/dev && docker-compose pull meta-service-api && docker-compose -p meta-dev up --force-recreate -d meta-service-api && docker image prune -f
+          script: cd /data/dockers/meta/dev && docker-compose pull service-api && docker-compose -p meta-dev up --force-recreate -d service-api && docker image prune -f
 
   deploy-to-staging:
     runs-on: ubuntu-latest
@@ -83,7 +83,7 @@ jobs:
           port: ${{ secrets.ENV_SSH_PORT }}
           username: root
           key: ${{ secrets.ENV_SSH_KEY }}
-          script: cd /data/dockers/meta/staging && docker-compose pull meta-service-api && docker-compose -p meta-staging up --force-recreate -d meta-service-api && docker image prune -f
+          script: cd /data/dockers/meta/staging && docker-compose pull service-api && docker-compose -p meta-staging up --force-recreate -d service-api && docker image prune -f
 
   deploy-to-prod:
     runs-on: ubuntu-latest
@@ -108,4 +108,4 @@ jobs:
           port: ${{ secrets.ENV_SSH_PORT }}
           username: root
           key: ${{ secrets.ENV_SSH_KEY }}
-          script: cd /data/dockers/meta/prod && docker-compose pull meta-service-api && docker-compose -p meta-prod up --force-recreate -d meta-service-api && docker image prune -f
+          script: cd /data/dockers/meta/prod && docker-compose pull service-api && docker-compose -p meta-prod up --force-recreate -d service-api && docker image prune -f
