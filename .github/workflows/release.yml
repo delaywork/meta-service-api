@@ -41,7 +41,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/release/development' }}
     environment:
       name: development
-      url: https://dev.app.delay.work/meta/api
+      url: https://dev.meta.delay.work/api
 
     steps:
       - name: Install SSH Key
@@ -51,7 +51,7 @@ jobs:
           name: github-actions
           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
-      - name: Deploy to SIT
+      - name: Deploy to DEV
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.ENV_SSH_HOST }}
@@ -66,7 +66,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/release/staging' }}
     environment:
       name: staging
-      url: https://staging.app.delay.work/meta/api
+      url: https://staging.meta.delay.work/api
 
     steps:
       - name: Install SSH Key
@@ -76,7 +76,7 @@ jobs:
           name: github-actions
           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
-      - name: Deploy to SIT
+      - name: Deploy to STAGING
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.ENV_SSH_HOST }}
@@ -91,7 +91,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/release/production' }}
     environment:
       name: production
-      url: https://app.delay.work/meta/api
+      url: https://meta.delay.work/api
 
     steps:
       - name: Install SSH Key
@@ -101,7 +101,7 @@ jobs:
           name: github-actions
           known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
-      - name: Deploy to SIT
+      - name: Deploy to PRODUCTION
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.ENV_SSH_HOST }}
