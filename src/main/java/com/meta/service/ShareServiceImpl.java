@@ -1,22 +1,25 @@
 package com.meta.service;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.Month;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.meta.mapper.ShareMapper;
+import com.meta.model.ErrorEnum;
+import com.meta.model.FastRunTimeException;
+import com.meta.model.enums.ShareSourceTypeEnum;
 import com.meta.model.pojo.Account;
 import com.meta.model.pojo.DataRoom;
 import com.meta.model.pojo.Share;
-import com.meta.model.request.shareFileRequest;
-import lombok.Data;
+import com.meta.model.request.ShareFileRequest;
+import com.meta.utils.PdfUtil;
+import com.meta.utils.QiuUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Set;
 
 @Log4j2
 @Service
@@ -28,31 +31,51 @@ public class ShareServiceImpl {
     private AccountServiceImpl accountService;
     @Autowired
     private DataRoomServiceImpl dataRoomService;
+    @Autowired
+    private QiuUtil qiuUtil;
 
     /**
      * 分享文件
      * */
-    public void shareFile(shareFileRequest request, Long accountId, Long tenantId){
+    @Transactional
+    public String shareFile(ShareFileRequest request, Long accountId, Long tenantId){
         Account account = accountService.getAccountById(accountId);
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy", Locale.UK);
         Date date = new Date();
         String dateString = dateFormat.format(date);
-        String watermark = account.getName() + " " + dateString;
-        Share share = Share.builder().shareAccountId(accountId).tenantId(tenantId).haveWatermark(true).build();
+        String watermark = account.getName() + " share in " + dateString;
+        Share share = Share.builder().shareAccountId(accountId).tenantId(tenantId).haveWatermark(true).watermarkText(watermark).build();
         switch (request.getSourceType()){
             case PDF:
                 // 查询文件
                 DataRoom file = dataRoomService.getFile(request.getSourceId(), accountId, tenantId);
-                // TODO 补充 share 信息
+                // 补充 share 信息
+                share.setSourceId(file.getId());
+                share.setSourceType(ShareSourceTypeEnum.PDF);
+                share.setSourceUrl(file.getUrl());
+                share.setName(file.getName());
                 break;
             case SHARE:
                 // 查询分享
                 Share oldShare = this.getShare(request.getSourceId());
-                // TODO 补充 share 信息
+                // 补充 share 信息
+                share.setSourceId(oldShare.getId());
+                share.setSourceType(ShareSourceTypeEnum.SHARE);
+                share.setSourceUrl(oldShare.getSourceUrl());
+                share.setName(oldShare.getName());
                 break;
         }
-        // TODO 生成水印文件并存储
-
+        // 生成水印文件并存储
+        try{
+            MultipartFile multipartFile = PdfUtil.manipulatePdfReturnFile(qiuUtil.downloadPrivate(share.getSourceUrl()), watermark, share.getName());
+            String url = qiuUtil.uploadStream(multipartFile);
+            share.setWatermarkUrl(url);
+        }catch (Exception e){
+            log.info("pdf 加水印失败，{}",e.getMessage());
+            throw new FastRunTimeException(ErrorEnum.添加水印失败);
+        }
+        shareMapper.insert(share);
+        return qiuUtil.downloadPrivate(share.getWatermarkUrl());
     }
 
     /**

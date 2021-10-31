@@ -3,8 +3,14 @@ package com.meta.controller;
 import com.meta.model.BiteClaims;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.ReturnData;
+import com.meta.model.enums.AccountTypeEnum;
+import com.meta.model.pojo.Account;
+import com.meta.model.pojo.ReadSchedule;
+import com.meta.model.pojo.ReadTime;
 import com.meta.model.request.*;
+import com.meta.model.response.AddBlankReadRecordResponse;
 import com.meta.model.response.ReadRecordResponse;
+import com.meta.service.AccountServiceImpl;
 import com.meta.service.ReadScheduleServiceImpl;
 import com.meta.service.ReadTimeServiceImpl;
 import com.meta.utils.JWTUtil;
@@ -27,8 +33,10 @@ public class ReadRecordController {
     private ReadScheduleServiceImpl readScheduleService;
     @Autowired
     private ReadTimeServiceImpl readTimeService;
+    @Autowired
+    private AccountServiceImpl accountService;
 
-    @ApiOperation("记录阅读数据")
+    @ApiOperation("记录阅读数据（轮询方式，默认间隔时间：3s）")
     @PostMapping("/add/read-record")
     public ReturnData readRecord(@RequestBody ReadRecordRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
@@ -46,6 +54,19 @@ public class ReadRecordController {
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
             return ReturnData.success(readScheduleService.queryReadRecord(request, biteClaims.getAccountId()));
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    @ApiOperation("新增空白阅读记录，WebSocket记录阅读信息前调用")
+    @PostMapping("/add/blank-read-record")
+    private ReturnData<AddBlankReadRecordResponse> addBlankReadRecord(@RequestBody AddBlankReadRecordRequest request, @RequestHeader(value = "AccessToken") String token){
+        try{
+            BiteClaims biteClaims = JWTUtil.checkToken(token);
+            ReadSchedule readSchedule = ReadSchedule.builder().accountId(biteClaims.getAccountId()).accountType(AccountTypeEnum.MEMBERS)
+                    .sourceId(request.getSourceId()).sourceType(request.getSourceType()).build();
+            return ReturnData.success( readScheduleService.addBlankReadRecord(readSchedule));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }

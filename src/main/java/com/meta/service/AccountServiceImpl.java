@@ -9,6 +9,8 @@ import com.meta.model.WechatUtilLoginResponse;
 import com.meta.model.pojo.Account;
 import com.meta.model.pojo.Tenant;
 import com.meta.model.request.IdRequest;
+import com.meta.model.request.LoginByWechatCloudDTO;
+import com.meta.model.request.LoginByWechatCloudRequest;
 import com.meta.utils.JWTUtil;
 import com.meta.utils.WechatUtil;
 import lombok.extern.log4j.Log4j2;
@@ -55,6 +57,29 @@ public class AccountServiceImpl {
     }
 
     /**
+     * 微信云函数登录验证
+     * */
+    public TokenResponse loginByWechatCloud(LoginByWechatCloudDTO request){
+        // 判断是否存在账号，没有则创建账号
+        QueryWrapper<Account> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(Account::getOpenid, request.getOpenid());
+        Account account = accountMapper.selectOne(wrapper);
+        Long tenantId = null;
+        if (ObjectUtil.isEmpty(account)){
+            // 创建Tenant
+            Tenant tenant = Tenant.builder().build();
+            tenantMapper.insert(tenant);
+            // 创建Account
+            account = Account.builder().openid(request.getOpenid()).unionid(request.getUnionid()).name(request.getName()).wechatAuth(true).tenantId(tenant.getId()).build();
+            accountMapper.insert(account);
+        }
+        tenantId = account.getTenantId();
+        // 生成 token
+        TokenResponse tokenResponse = JWTUtil.getAccessTokenAndRefreshToken(account.getId(), tenantId);
+        return tokenResponse;
+    }
+
+    /**
      * 发送注册邮件
      * */
 
@@ -75,7 +100,7 @@ public class AccountServiceImpl {
      * */
     public Account getAccountById(Long accountId){
         QueryWrapper<Account> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(Account::getId, accountId).eq(Account::getDataIsDeleted, true);
+        wrapper.lambda().eq(Account::getId, accountId).eq(Account::getDataIsDeleted, false);
         Account account = accountMapper.selectOne(wrapper);
         return account;
     }

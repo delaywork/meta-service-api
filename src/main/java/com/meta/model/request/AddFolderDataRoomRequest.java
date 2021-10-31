@@ -19,7 +19,7 @@ public class AddFolderDataRoomRequest {
     private String name;
 
     // 描述
-    private String describe;
+    private String note;
 
     @Tolerate
     public AddFolderDataRoomRequest(){}

@@ -32,7 +32,7 @@ public class Account extends BaseModel {
     private String unionid;
 
     // 微信认证状态（1：进行过微信认证， 0：未进行过微信认证）
-    @TableField(value = "unionid")
+    @TableField(value = "wechat_auth")
     private Boolean wechatAuth;
 
     // 用户名

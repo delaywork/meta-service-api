@@ -19,7 +19,7 @@ public class ReadRecordResponse {
 
     // 主键ID
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Long ReadScheduleId;
+    private Long readScheduleId;
 
     // 阅读源 id
     @JsonFormat(shape = JsonFormat.Shape.STRING)

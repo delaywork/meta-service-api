@@ -25,7 +25,7 @@ public class DataRoomController {
 
     @ApiOperation("上传文件")
     @PostMapping("/upload/file")
-    public ReturnData addFile(@RequestPart MultipartFile file, @ApiParam(value = "父级菜单") @RequestParam() Long parentId, @RequestHeader(value = "AccessToken") String token){
+    public ReturnData addFile(@RequestPart("file") MultipartFile file, @ApiParam(value = "父级菜单") @RequestParam() Long parentId, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
             dataRoomService.addFile(file, biteClaims.getAccountId(), parentId, biteClaims.getTenantId());
@@ -40,7 +40,7 @@ public class DataRoomController {
     public ReturnData addFolder(@RequestBody AddFolderDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            DataRoom dataRoom = DataRoom.builder().name(request.getName()).describe(request.getDescribe())
+            DataRoom dataRoom = DataRoom.builder().name(request.getName()).note(request.getNote())
                     .parentId(request.getParentId()).tenantId(biteClaims.getTenantId()).operationAccountId(biteClaims.getAccountId()).build();
             dataRoomService.addFolder(dataRoom);
             return ReturnData.success();
@@ -51,7 +51,7 @@ public class DataRoomController {
 
     @ApiOperation("重新上传文件")
     @PostMapping("/update/file")
-    public ReturnData updateFile(@RequestPart MultipartFile file, @ApiParam(value = "父级菜单") @RequestParam() Long fileId, @RequestHeader(value = "AccessToken") String token){
+    public ReturnData updateFile(@RequestPart MultipartFile file, @ApiParam(value = "fileId") @RequestParam() Long fileId, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
             dataRoomService.updateFile(file, biteClaims.getAccountId(), fileId, biteClaims.getTenantId());

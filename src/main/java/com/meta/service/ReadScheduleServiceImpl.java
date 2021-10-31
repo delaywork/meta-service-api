@@ -6,6 +6,7 @@ import com.meta.mapper.ReadScheduleMapper;
 import com.meta.model.pojo.ReadSchedule;
 import com.meta.model.pojo.ReadTime;
 import com.meta.model.request.*;
+import com.meta.model.response.AddBlankReadRecordResponse;
 import com.meta.model.response.ReadRecordResponse;
 import com.meta.model.response.vo.ReadTimeVO;
 import lombok.extern.log4j.Log4j2;
@@ -74,6 +75,23 @@ public class ReadScheduleServiceImpl {
         readSchedule.setReadTime(readingTime);
         readScheduleMapper.insert(readSchedule);
         return readSchedule;
+    }
+
+    /**
+     * 新增空白阅读记录
+     * */
+    public AddBlankReadRecordResponse addBlankReadRecord(ReadSchedule readSchedule){
+        long currentTimes = System.currentTimeMillis();
+        // 新增阅读次数
+        AddReadTimeRequest addReadTimeRequest = AddReadTimeRequest.builder().sourceId(readSchedule.getSourceId()).sourceType(readSchedule.getSourceType())
+                .accountId(readSchedule.getAccountId()).accountType(readSchedule.getAccountType()).startTime(currentTimes).build();
+        ReadTime readTime = readTimeService.addBlank(addReadTimeRequest);
+        // 添加阅读记录信息
+        readSchedule.setFirstTime(currentTimes);
+        readSchedule.setLastTime(currentTimes);
+        readSchedule.setReadTime(0L);
+        readScheduleMapper.insert(readSchedule);
+        return AddBlankReadRecordResponse.builder().readScheduleId(readSchedule.getId()).readTimeId(readTime.getId()).build();
     }
 
     /**
