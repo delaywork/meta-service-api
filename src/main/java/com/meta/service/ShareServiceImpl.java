@@ -57,7 +57,11 @@ public class ShareServiceImpl {
                 break;
             case SHARE:
                 // 查询分享
-                Share oldShare = this.getShare(request.getSourceId());
+                Share oldShare = this.getShare(request.getSourceId(), accountId);
+                // 判断该分享是否可以被其他用户分享
+                if (!share.getShareAccountId().equals(accountId) && !share.getAllowShare()){
+                    throw new FastRunTimeException(ErrorEnum.该分享已被禁止其他用户分享);
+                }
                 // 补充 share 信息
                 share.setSourceId(oldShare.getId());
                 share.setSourceType(ShareSourceTypeEnum.SHARE);
@@ -81,10 +85,17 @@ public class ShareServiceImpl {
     /**
      * 查询分享
      * */
-    public Share getShare(Long shareId){
+    public Share getShare(Long shareId, Long accountId){
         QueryWrapper<Share> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(Share::getId, shareId).eq(Share::getDataIsDeleted, false);
         Share share = shareMapper.selectOne(wrapper);
+        // 判断这个分享是否可被其他用户查看
+        if (!share.getShareAccountId().equals(accountId) && !share.getAllowAccess()){
+            throw new FastRunTimeException(ErrorEnum.该分享已被禁止其他用户访问);
+        }
+        // 获取可公开访问的水印文件
+        String publicWatermarkUrl = qiuUtil.downloadPrivate(share.getWatermarkUrl());
+        share.setWatermarkUrl(publicWatermarkUrl);
         return share;
     }
 

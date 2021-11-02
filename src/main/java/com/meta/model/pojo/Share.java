@@ -43,6 +43,14 @@ public class Share extends BaseModel {
     @TableField(value = "note")
     private String note;
 
+    // 允许访问
+    @TableField(value = "allow_access")
+    private Boolean allowAccess;
+
+    // 允许分享
+    @TableField(value = "allow_share")
+    private Boolean allowShare;
+
     // 是否需要水印
     @TableField(value = "have_watermark")
     private Boolean haveWatermark = true;
