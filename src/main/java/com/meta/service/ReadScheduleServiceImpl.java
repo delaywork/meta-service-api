@@ -2,12 +2,17 @@ package com.meta.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.meta.mapper.ReadScheduleMapper;
+import com.meta.model.pojo.DataRoom;
 import com.meta.model.pojo.ReadSchedule;
 import com.meta.model.pojo.ReadTime;
+import com.meta.model.pojo.Share;
 import com.meta.model.request.*;
 import com.meta.model.response.AddBlankReadRecordResponse;
 import com.meta.model.response.ReadRecordResponse;
+import com.meta.model.response.vo.ReadRecordByAccountVO;
+import com.meta.model.response.vo.ReadRecordBySourceVO;
 import com.meta.model.response.vo.ReadTimeVO;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -26,6 +32,10 @@ public class ReadScheduleServiceImpl {
     private ReadScheduleMapper readScheduleMapper;
     @Autowired
     private ReadTimeServiceImpl readTimeService;
+    @Autowired
+    private DataRoomServiceImpl dataRoomService;
+    @Autowired
+    protected ShareServiceImpl shareService;
 
     @Value("${reading.time:3}")
     private Long readingTime;
@@ -173,6 +183,91 @@ public class ReadScheduleServiceImpl {
         response.setPageReadTime(pageReadTime);
         response.setReadTimeList(readTimeVOS);
         return response;
+    }
+
+    /**
+     * 阅读记录分页查询（根据accountId）
+     * */
+    public Page<ReadRecordByAccountVO> pageReadRecordByAccount(PageReadRecordByAccountRequest request, Long accountId){
+        Page<ReadRecordByAccountVO> pages = new Page<>();
+        // 查询当前账户阅读记录
+        QueryWrapper<ReadSchedule> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(ReadSchedule::getAccountId, accountId).eq(ReadSchedule::getDataIsDeleted, false);
+        Page<ReadSchedule> readSchedulePage = readScheduleMapper.selectPage(request.getPage(), wrapper);
+        // 组装返回
+        pages.setCountId(readSchedulePage.getCountId());
+        pages.setCurrent(readSchedulePage.getCurrent());
+        pages.setPages(readSchedulePage.getPages());
+        pages.setSize(readSchedulePage.getSize());
+        pages.setTotal(readSchedulePage.getTotal());
+        // 组装数据
+        List<ReadSchedule> records = readSchedulePage.getRecords();
+        if (ObjectUtils.isEmpty(records)){
+            return pages;
+        }
+        List<ReadRecordByAccountVO> collect = records.stream().map(item -> {
+            ReadRecordByAccountVO readRecordByAccountVO = ReadRecordByAccountVO.builder().readScheduleId(item.getId())
+                    .readTime(item.getReadTime())
+                    .firstTime(item.getFirstTime())
+                    .lastTime(item.getLastTime())
+                    .currentPage(item.getCurrentPage())
+                    .sourceId(item.getSourceId())
+                    .sourceType(item.getSourceType()).build();
+            // 查询阅读源名称和url
+            switch (item.getSourceType()){
+                case PDF:
+                    DataRoom dataRoom = dataRoomService.getFileInternal(item.getSourceId());
+                    if (!ObjectUtils.isEmpty(dataRoom)){
+                        readRecordByAccountVO.setName(dataRoom.getName());
+                    }
+                    break;
+                case SHARE:
+                    Share share = shareService.getShareInternal(item.getSourceId());
+                    if (!ObjectUtils.isEmpty(share)){
+                        readRecordByAccountVO.setName(share.getName());
+                    }
+                    break;
+            }
+            return readRecordByAccountVO;
+        }).collect(Collectors.toList());
+        pages.setRecords(collect);
+        return pages;
+    }
+
+    /**
+     * 阅读记录分页查询（根据源id）
+     * */
+    public Page<ReadRecordBySourceVO> pageReadRecordBySource(PageReadRecordBySourceRequest request){
+        Page<ReadRecordBySourceVO> pages = new Page<>();
+        // 查询分页数据
+        QueryWrapper<ReadSchedule> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(ReadSchedule::getSourceId, request.getSourceId()).eq(ReadSchedule::getDataIsDeleted, false);
+        Page<ReadSchedule> readSchedulePage = readScheduleMapper.selectPage(request.getPage(), wrapper);
+        // 组装返回
+        pages.setCountId(readSchedulePage.getCountId());
+        pages.setCurrent(readSchedulePage.getCurrent());
+        pages.setPages(readSchedulePage.getPages());
+        pages.setSize(readSchedulePage.getSize());
+        pages.setTotal(readSchedulePage.getTotal());
+        // 组装数据
+        List<ReadSchedule> records = readSchedulePage.getRecords();
+        if (ObjectUtils.isEmpty(records)){
+            return pages;
+        }
+        List<ReadRecordBySourceVO> collect = records.stream().map(item -> {
+            ReadRecordBySourceVO readRecord = ReadRecordBySourceVO.builder().readScheduleId(item.getId())
+                    .sourceId(item.getSourceId())
+                    .sourceType(item.getSourceType())
+                    .readTime(item.getReadTime())
+                    .firstTime(item.getFirstTime())
+                    .lastTime(item.getLastTime())
+                    .currentPage(item.getCurrentPage())
+                    .accountId(item.getAccountId())
+                    .accountType(item.getAccountType()).build();
+            return readRecord;
+        }).collect(Collectors.toList());
+        pages.setRecords(collect);
+        return pages;
     }
 
 

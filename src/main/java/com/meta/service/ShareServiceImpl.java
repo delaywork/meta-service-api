@@ -99,6 +99,13 @@ public class ShareServiceImpl {
         return share;
     }
 
+    /**
+     * 查询文件（内部调用）
+     * */
+    public Share getShareInternal(Long shareId){
+        return shareMapper.selectById(shareId);
+    }
+
 
 
 }

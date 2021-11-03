@@ -42,6 +42,13 @@ public class DataRoomServiceImpl {
     private final static long SEVEN_DAYS_AGO = 1000l * 60l * 60l * 24l * 7l;
 
     /**
+     * 查询文件（内部调用）
+     * */
+    public DataRoom getFileInternal(Long fileId){
+        return dataRoomMapper.selectById(fileId);
+    }
+
+    /**
      * 新增文件
      */
     @Transactional
