@@ -1,9 +1,9 @@
 package com.meta.service;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.Update;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.meta.mapper.DataRoomMapper;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
@@ -12,14 +12,15 @@ import com.meta.model.enums.DataRoomTypeEnum;
 import com.meta.model.pojo.DataRoom;
 import com.meta.model.pojo.VersionHistory;
 import com.meta.model.request.MoveDataRoomRequest;
+import com.meta.model.request.PageDeleteDataRoomRequest;
 import com.meta.model.request.UpdateFolderNameRequest;
 import com.meta.utils.QiuUtil;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -37,7 +38,15 @@ public class DataRoomServiceImpl {
     private QiuUtil qiuUtil;
 
     // 根目录
-    private final static String root = "/";
+    private final static String ROOT = "/";
+    private final static long SEVEN_DAYS_AGO = 1000l * 60l * 60l * 24l * 7l;
+
+    /**
+     * 查询文件（内部调用）
+     * */
+    public DataRoom getFileInternal(Long fileId){
+        return dataRoomMapper.selectById(fileId);
+    }
 
     /**
      * 新增文件
@@ -69,6 +78,10 @@ public class DataRoomServiceImpl {
      * */
     @Transactional
     public void addFolder(DataRoom dataRoom){
+        // 判断文件夹名称是否合法
+        if (ROOT.equals(dataRoom.getName())){
+            throw new FastRunTimeException(ErrorEnum.不能使用根目录命名);
+        }
         dataRoom.setType(DataRoomTypeEnum.FOLDER);
         dataRoom.setUrl(null);
         dataRoomMapper.insert(dataRoom);
@@ -98,6 +111,10 @@ public class DataRoomServiceImpl {
      * */
     @Transactional
     public void updateFolderName(UpdateFolderNameRequest request, Long accountId, Long tenantId){
+        // 判断文件夹名称是否合法
+        if (ROOT.equals(request.getName())){
+            throw new FastRunTimeException(ErrorEnum.不能使用根目录命名);
+        }
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
         wrapper.lambda().eq(DataRoom::getId,request.getFolderId()).eq(DataRoom::getTenantId,tenantId)
                 .set(DataRoom::getName, request.getName()).set(DataRoom::getOperationAccountId, accountId);
@@ -137,6 +154,7 @@ public class DataRoomServiceImpl {
     /**
      * 删除文件/文件夹
      * */
+    @Transactional
     public void deleteDataRoom(Long dataRoomId, Long accountId, Long tenantId){
         // 查询dataRoom（如果是文件夹还要遍历删除子文件夹和文件）
         DataRoom dataRoom = dataRoomMapper.selectById(dataRoomId);
@@ -151,6 +169,10 @@ public class DataRoomServiceImpl {
         if (dataRoom.getDataIsDeleted()){
             // 文件已被删除
             throw new FastRunTimeException(ErrorEnum.文件已删除);
+        }
+        if (ROOT.equals(dataRoom.getName()) && DataRoomTypeEnum.FOLDER.equals(dataRoom.getType())){
+            // 根目录不能被删除
+            throw new FastRunTimeException(ErrorEnum.根目录不能被删除);
         }
         // 递归删除子文件
         this.recursiveDelete(dataRoomId);
@@ -183,23 +205,88 @@ public class DataRoomServiceImpl {
     }
 
     /**
-     * 查询删除列表
+     * 查询7天内的删除列表
      * */
+    public Page<DataRoom> pageDelete(PageDeleteDataRoomRequest request, Long tenantId){
+        QueryWrapper<DataRoom> wrapper = new QueryWrapper<>();
+        long sevenDaysAgo = System.currentTimeMillis() - SEVEN_DAYS_AGO;
+        wrapper.lambda().eq(DataRoom::getTenantId, tenantId).eq(DataRoom::getDataIsDeleted, true).ge(DataRoom::getDataUpdateTime,sevenDaysAgo);
+        Page<DataRoom> dataRoomPage = dataRoomMapper.selectPage(request.getPage(), wrapper);
+        return dataRoomPage;
+    }
 
     /**
      * 恢复删除
      * */
+    @Transactional
+    public void restoreDelete(Long dataRoomId, Long tenantId){
+        // 查询被删除的文件是否属于这个tenant
+        QueryWrapper<DataRoom> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(DataRoom::getId, dataRoomId).eq(DataRoom::getDataIsDeleted, true).eq(DataRoom::getTenantId, tenantId);
+        DataRoom dataRoom = dataRoomMapper.selectOne(wrapper);
+        if (ObjectUtils.isEmpty(dataRoom)){
+            throw new FastRunTimeException(ErrorEnum.文件不存在);
+        }
+        // 判断父级文件夹是否存在
+        QueryWrapper<DataRoom> parentDataRoomWrapper = new QueryWrapper<>();
+        parentDataRoomWrapper.lambda().eq(DataRoom::getId,dataRoom.getParentId()).eq(DataRoom::getDataIsDeleted, false).eq(DataRoom::getTenantId, tenantId);
+        DataRoom parentDataRoom = dataRoomMapper.selectOne(parentDataRoomWrapper);
+        if (ObjectUtils.isEmpty(parentDataRoom)){
+            throw new FastRunTimeException(ErrorEnum.原有父级文件夹不存在);
+        }
+        // 恢复删除文件
+        UpdateWrapper<DataRoom> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().eq(DataRoom::getId,dataRoomId).set(DataRoom::getDataIsDeleted, false);
+        dataRoomMapper.update(DataRoom.builder().build(), updateWrapper);
+    }
 
     /**
-     * 彻底删除（同步删除历史版本、分享、阅读记录、阅读次数）
+     * 彻底删除（同步删除历史版本）
      * */
+    @Transactional
+    public void completeDelete(Long dataRoomId, Long tenantId){
+        QueryWrapper<DataRoom> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(DataRoom::getId, dataRoomId).eq(DataRoom::getTenantId, tenantId);
+        DataRoom dataRoom = dataRoomMapper.selectOne(wrapper);
+        if (ObjectUtils.isEmpty(dataRoom)){
+            throw new FastRunTimeException(ErrorEnum.文件不存在);
+        }
+        // 删除dataRoom
+        dataRoomMapper.deleteById(dataRoomId);
+        // 删除历史版本
+        versionHistoryService.completeDelete(dataRoomId);
+        // 递归彻底删除
+        this.recursiveCompleteDelete(dataRoomId);
+    }
+
+    /**
+     * 彻底递归删除
+     * */
+    private void recursiveCompleteDelete(Long dataRoomId){
+        // 判断是否存在子目录
+        QueryWrapper<DataRoom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda().eq(DataRoom::getParentId, dataRoomId);
+        List<DataRoom> dataRooms = dataRoomMapper.selectList(queryWrapper);
+        // 子目录不为空继续删除
+        if (!ObjectUtils.isEmpty(dataRooms)){
+            dataRooms.stream().forEach(item -> {
+                // 删除历史版本
+                versionHistoryService.completeDelete(item.getId());
+                if (DataRoomTypeEnum.FOLDER.equals(item.getType())){
+                    this.recursiveCompleteDelete(item.getId());
+                }
+            });
+            // 删除子dataRoom
+            dataRoomMapper.delete(queryWrapper);
+        }
+    }
 
     /**
      * 初始化根目录(以用户id作为根目录的id)
      * */
     @Transactional
     public void initFolder(Long accountId, Long tenantId){
-        DataRoom dataRoom = DataRoom.builder().id(accountId).type(DataRoomTypeEnum.FOLDER).tenantId(tenantId).name(root).operationAccountId(accountId).build();
+        DataRoom dataRoom = DataRoom.builder().id(accountId).type(DataRoomTypeEnum.FOLDER).tenantId(tenantId).name(ROOT).operationAccountId(accountId).build();
         addFolder(dataRoom);
     }
 
@@ -236,6 +323,7 @@ public class DataRoomServiceImpl {
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
+        dataRoom.setUrl(qiuUtil.downloadPrivate(dataRoom.getUrl()));
         return dataRoom;
     }
 
