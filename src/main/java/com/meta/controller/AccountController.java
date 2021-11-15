@@ -4,13 +4,17 @@ import com.meta.model.*;
 import com.meta.model.pojo.Account;
 import com.meta.model.request.*;
 import com.meta.service.AccountServiceImpl;
+import com.meta.utils.CodeUtil;
 import com.meta.utils.JWTUtil;
 import com.meta.utils.RSAUtil;
+import com.meta.utils.RedisKeys;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 @Api(value = "Account 用户", tags = {"Account 用户"})
 @RestController
@@ -49,6 +53,16 @@ public class AccountController {
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
             return ReturnData.success(accountService.getAccountById(biteClaims.getAccountId()));
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    @PostMapping("/sign-up/send-sms-code")
+    public ReturnData sendSignUpSmsCode(@RequestBody SendSignUpSmsCodeRequest request){
+        try{
+            accountService.sendSignUpSmsCode(request.getPhone());
+            return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
