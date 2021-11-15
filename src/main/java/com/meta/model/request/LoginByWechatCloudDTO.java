@@ -11,6 +11,8 @@ public class LoginByWechatCloudDTO {
     private String openid;
     private String unionid;
     private String name;
+    private String phone;
+    private String code;
 
     @Tolerate
     public LoginByWechatCloudDTO(){}

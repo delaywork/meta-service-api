@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RedisKeys {
     TOKEN("token:","token"),
+    SIGN_UP_SMS_CODE("signUpSmsCode:","注册手机验证码"),
     ;
 
     @EnumValue
