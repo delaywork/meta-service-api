@@ -22,6 +22,8 @@ public class JWTUtil {
     static RedisUtil redisUtils = SpringUtil.getBean(RedisUtil.class);
     private final static String ACCOUNT_ID = "accountId";
     private final static String TENANT_ID = "tenantId";
+    private final static String PHONE_PREFIX = "phonePrefix";
+    private final static String PHONE = "phone";
     private final static String LOGIN_TIME = "loginTime";
     private final static String VALIDITY_TIME = "validityTime";
     private final static String TOKEN_TYPE = "tokenType";
@@ -32,12 +34,14 @@ public class JWTUtil {
     // refreshToken有效时间：14天
     private final static Long REFRESH_TOKEN_VALIDITY_TIME = 1000L * 60L * 60L * 24 * 14;
 
-    private static String getAccessToken(Long accountId, Long tenantId) {
+    private static String getAccessToken(Long accountId, Long tenantId, String phonePrefix, String phone) {
         long currentTimeMillis = System.currentTimeMillis();
         long validityTime = currentTimeMillis + ACCESS_TOKEN_VALIDITY_TIME;
         Map<String, Object> map = new HashMap();
         map.put(ACCOUNT_ID, accountId);
         map.put(TENANT_ID, tenantId);
+        map.put(PHONE_PREFIX, phonePrefix);
+        map.put(PHONE, phone);
         map.put(LOGIN_TIME, currentTimeMillis);
         map.put(VALIDITY_TIME, validityTime);
         map.put(TOKEN_TYPE, ACCESS_TOKEN_TYPE);
@@ -46,12 +50,14 @@ public class JWTUtil {
         return jws;
     }
 
-    private static String getRefreshToken(Long accountId, Long tenantId) {
+    private static String getRefreshToken(Long accountId, Long tenantId, String phonePrefix, String phone) {
         long currentTimeMillis = System.currentTimeMillis();
         long validityTime = currentTimeMillis + REFRESH_TOKEN_VALIDITY_TIME;
         Map<String, Object> map = new HashMap();
         map.put(ACCOUNT_ID, accountId);
         map.put(TENANT_ID, tenantId);
+        map.put(PHONE_PREFIX, phonePrefix);
+        map.put(PHONE, phone);
         map.put(LOGIN_TIME, currentTimeMillis);
         map.put(VALIDITY_TIME, validityTime);
         map.put(TOKEN_TYPE, REFRESH_TOKEN_TYPE);
@@ -60,10 +66,9 @@ public class JWTUtil {
         return jws;
     }
 
-    public static TokenResponse getAccessTokenAndRefreshToken(Long accountId, Long tenantId) {
-        long currentTimeMillis = System.currentTimeMillis();
-        String accessToken = getAccessToken(accountId, tenantId);
-        String refreshToken = getRefreshToken(accountId, tenantId);
+    public static TokenResponse getAccessTokenAndRefreshToken(Long accountId, Long tenantId, String phonePrefix, String phone) {
+        String accessToken = getAccessToken(accountId, tenantId, phonePrefix, phone);
+        String refreshToken = getRefreshToken(accountId, tenantId, phonePrefix, phone);
         return TokenResponse.builder().accessToken(accessToken).refreshToken(refreshToken).build();
     }
 
@@ -74,7 +79,7 @@ public class JWTUtil {
         // 调用checkToken对refreshToken进行验证和解析
         BiteClaims biteClaims = checkToken(refreshToken);
         if (REFRESH_TOKEN_TYPE.equals(biteClaims.getTokenType())) {
-            return getAccessTokenAndRefreshToken(biteClaims.getAccountId(), biteClaims.getTenantId());
+            return getAccessTokenAndRefreshToken(biteClaims.getAccountId(), biteClaims.getTenantId(), biteClaims.getPhonePrefix(), biteClaims.getPhone());
         }
         throw new FastRunTimeException(ErrorEnum.Token过期或已失效);
     }
@@ -101,11 +106,16 @@ public class JWTUtil {
             log.info("token 解析错误");
             throw new FastRunTimeException(ErrorEnum.Token过期或已失效);
         }
+        if (StringUtils.isEmpty(claims.get(PHONE, String.class))){
+            throw new FastRunTimeException(ErrorEnum.帐户未验证);
+        }
         return BiteClaims.builder().accountId(claims.get(ACCOUNT_ID, Long.class))
                 .times(claims.get(VALIDITY_TIME, Long.class))
                 .tokenType(claims.get(TOKEN_TYPE, String.class))
                 .loginTime(claims.get(LOGIN_TIME, Long.class))
-                .tenantId(claims.get(TENANT_ID, Long.class)).build();
+                .tenantId(claims.get(TENANT_ID, Long.class))
+                .phonePrefix(claims.get(PHONE_PREFIX, String.class))
+                .phone(claims.get(PHONE, String.class)).build();
     }
 
     /**
@@ -131,7 +141,9 @@ public class JWTUtil {
                 .times(claims.get(VALIDITY_TIME, Long.class))
                 .tokenType(claims.get(TOKEN_TYPE, String.class))
                 .loginTime(claims.get(LOGIN_TIME, Long.class))
-                .tenantId(claims.get(TENANT_ID, Long.class)).build();
+                .tenantId(claims.get(TENANT_ID, Long.class))
+                .phonePrefix(claims.get(PHONE_PREFIX, String.class))
+                .phone(claims.get(PHONE, String.class)).build();
     }
 
 }

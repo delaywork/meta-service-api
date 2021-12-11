@@ -23,6 +23,10 @@ public class BiteClaims implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long tenantId;
 
+    private String phonePrefix;
+
+    private String phone;
+
     private Long times;
 
     private String tokenType;
