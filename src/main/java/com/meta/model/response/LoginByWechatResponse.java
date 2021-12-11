@@ -1,4 +1,4 @@
-package com.meta.model;
+package com.meta.model.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -11,14 +11,15 @@ import java.io.Serializable;
  */
 @Data
 @Builder
-public class TokenResponse implements Serializable {
+public class LoginByWechatResponse implements Serializable {
 
-    private static final long serialVersionUID = -935438290887411032L;
+    // 是否进行过手机号验证
+    private Boolean phoneAuth;
 
     private String accessToken;
 
     private String refreshToken;
 
     @Tolerate
-    public TokenResponse(){}
+    public LoginByWechatResponse(){}
 }

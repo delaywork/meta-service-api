@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -127,28 +128,59 @@ public class DataRoomServiceImpl {
     @Transactional
     public void moveDataRoom(MoveDataRoomRequest request, Long accountId, Long tenantId){
         // 校验 targetFolderId 是否是文件夹类型
-        DataRoom dataRoom = dataRoomMapper.selectById(request.getTargetFolderId());
-        if (ObjectUtils.isEmpty(dataRoom)){
+        DataRoom targetDataRoom = dataRoomMapper.selectById(request.getTargetFolderId());
+        DataRoom dataRoom = dataRoomMapper.selectById(request.getFolderId());
+
+        if (ObjectUtils.isEmpty(targetDataRoom)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (dataRoom.getTenantId() != tenantId){
+        if (targetDataRoom.getTenantId() != tenantId){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
-        if (!DataRoomTypeEnum.FOLDER.equals(dataRoom.getType())){
+        if (!DataRoomTypeEnum.FOLDER.equals(targetDataRoom.getType())){
             // 目标不是文件夹类型
             throw new FastRunTimeException(ErrorEnum.不是文件夹类型);
         }
-        if (dataRoom.getDataIsDeleted()){
+        if (targetDataRoom.getDataIsDeleted()){
             // 文件夹已被删除
             throw new FastRunTimeException(ErrorEnum.文件已删除);
+        }
+        // 移动文件夹校验不能移动到子文件夹
+        if (DataRoomTypeEnum.FOLDER.equals(dataRoom.getType())){
+            List<DataRoom> folders = new ArrayList<>();
+            this.childFolder(dataRoom.getId(), folders);
+            for (DataRoom folder: folders){
+                if (request.getTargetFolderId().equals(folder.getId())){
+                    log.info("不能移动到子文件夹");
+                    throw new FastRunTimeException(ErrorEnum.不能移动到子文件夹);
+                }
+            }
         }
         // 修改 folderId 文件父节点
         UpdateWrapper<DataRoom> wrapper = new UpdateWrapper<>();
         wrapper.lambda().eq(DataRoom::getId,request.getFolderId())
                 .set(DataRoom::getParentId,request.getTargetFolderId());
         dataRoomMapper.update(DataRoom.builder().build(), wrapper);
+    }
+
+    /**
+     * 递归查询文件夹
+     * */
+    private List<DataRoom> childFolder(Long folderId, List<DataRoom> folders){
+        QueryWrapper<DataRoom> wrapper = new QueryWrapper<>();
+        wrapper.lambda().eq(DataRoom::getParentId, folderId)
+                .eq(DataRoom::getType, DataRoomTypeEnum.FOLDER)
+                .eq(DataRoom::getDataIsDeleted, false);
+        List<DataRoom> documents = dataRoomMapper.selectList(wrapper);
+        if (com.baomidou.mybatisplus.core.toolkit.ObjectUtils.isNotEmpty(documents)){
+            folders.addAll(documents);
+            documents.forEach(document -> {
+                childFolder(document.getId(), folders);
+            });
+        }
+        return folders;
     }
 
     /**

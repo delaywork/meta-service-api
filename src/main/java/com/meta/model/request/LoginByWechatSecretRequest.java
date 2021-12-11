@@ -4,17 +4,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 
-
-/**
- * @Author Martin
- */
 @Data
 @Builder
-public class loginByWechatRequest {
+public class LoginByWechatSecretRequest {
 
-    private String jsCode;
+    private String requestData;
 
     @Tolerate
-    public loginByWechatRequest(){}
-
+    public LoginByWechatSecretRequest(){}
 }

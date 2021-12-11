@@ -4,17 +4,12 @@ import com.meta.model.*;
 import com.meta.model.pojo.Account;
 import com.meta.model.request.*;
 import com.meta.service.AccountServiceImpl;
-import com.meta.utils.CodeUtil;
 import com.meta.utils.JWTUtil;
 import com.meta.utils.RSAUtil;
-import com.meta.utils.RedisKeys;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.concurrent.TimeUnit;
 
 @Api(value = "Account 用户", tags = {"Account 用户"})
 @RestController
@@ -25,23 +20,34 @@ public class AccountController {
 
     @ApiOperation("微信授权登录")
     @PostMapping("/login/wechat")
-    public ReturnData<TokenResponse> loginByWechat(@RequestBody loginByWechatRequest request){
+    public ReturnData<TokenResponse> loginByWechat(@RequestBody LoginByWechatSecretRequest request){
         try{
-            return ReturnData.success(accountService.loginByWechat(request.getJsCode()));
+            LoginByWechatRequest loginByWechatRequest = RSAUtil.decrypt(request.getRequestData(), LoginByWechatRequest.class);
+            return ReturnData.success(accountService.loginByWechat(loginByWechatRequest));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
     }
 
-    @ApiOperation("微信云函数登录验证")
-    @PostMapping("/login/wechat-cloud")
-    public ReturnData<TokenResponse> loginByWechatCloud(@RequestBody LoginByWechatCloudRequest request){
-        if (StringUtils.isEmpty(request.getRequestData())){
-            return ReturnData.failed(new FastRunTimeException(ErrorEnum.参数不正确));
-        }
+    @ApiOperation("发送绑定手机号的验证吗")
+    @PostMapping("/bind-phone/send-sms-code")
+    public ReturnData sendSignUpSmsCode(@RequestBody SendSignUpSmsCodeRequest request){
         try{
-            LoginByWechatCloudDTO loginByWechatCloudDTO = RSAUtil.decrypt(request.getRequestData(), LoginByWechatCloudDTO.class);
-            return ReturnData.success(accountService.loginByWechatCloud(loginByWechatCloudDTO));
+            accountService.sendSignUpSmsCode(request.getPhone());
+            return ReturnData.success();
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    @ApiOperation("绑定手机号验证")
+    @PostMapping("/bind-phone/check")
+    public ReturnData<TokenResponse> loginByWechatCloud(@RequestBody BindPhoneRequest request, @RequestHeader(value = "AccessToken") String token){
+        BiteClaims biteClaims = JWTUtil.getBiteClaims(token);
+        request.setAccountId(biteClaims.getAccountId());
+        request.setTenantId(biteClaims.getTenantId());
+        try{
+            return ReturnData.success(accountService.bindPhoneCheck(request));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -58,14 +64,13 @@ public class AccountController {
         }
     }
 
-    @PostMapping("/sign-up/send-sms-code")
-    public ReturnData sendSignUpSmsCode(@RequestBody SendSignUpSmsCodeRequest request){
+    @ApiOperation("刷新 Token")
+    @GetMapping("/refresh/token")
+    public ReturnData<TokenResponse> refreshToken(@RequestHeader(value = "RefreshToken") String token){
         try{
-            accountService.sendSignUpSmsCode(request.getPhone());
-            return ReturnData.success();
+            return ReturnData.success(JWTUtil.getAccessTokenAndRefreshTokenByRefreshToken(token));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
     }
-
 }

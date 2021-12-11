@@ -43,6 +43,10 @@ public class Account extends BaseModel {
     @TableField(value = "email")
     private String email;
 
+    // 手机前缀
+    @TableField(value = "phone_prefix")
+    private String phonePrefix;
+
     // 手机
     @TableField(value = "phone")
     private String phone;
