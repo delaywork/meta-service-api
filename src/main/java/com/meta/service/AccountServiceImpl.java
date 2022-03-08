@@ -22,8 +22,8 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.concurrent.TimeUnit;
 
-@Log4j2
 @Service
+@Log4j2
 public class AccountServiceImpl {
 
     @Autowired

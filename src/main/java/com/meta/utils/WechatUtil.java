@@ -2,7 +2,6 @@ package com.meta.utils;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.extension.api.IErrorCode;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.TokenResponse;
