@@ -1,0 +1,20 @@
+spring:
+  thymeleaf:
+    cache: false
+  security:
+    oauth2:
+      client:
+        registration:
+          authing:
+            client-id: 6273395c827d2355d01818ba
+            client-secret: 06c4f4be926fa165105b34d56120e28a
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+#            redirect-uri: 'localhost:8080/test'
+            client-authentication-method: post
+            scope:
+              - openid
+              - profile
+        provider:
+          authing:
+            issuer-uri: https://meta.authing.cn/oidc
+            user-name-attribute: username
