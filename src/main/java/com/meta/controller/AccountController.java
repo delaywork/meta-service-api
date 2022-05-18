@@ -19,6 +19,12 @@ public class AccountController {
     private AccountServiceImpl accountService;
 
     @ApiOperation("微信授权登录")
+    @GetMapping("/test")
+    public String test(){
+        return "hello";
+    }
+
+    @ApiOperation("微信授权登录")
     @PostMapping("/login/wechat")
     public ReturnData<TokenResponse> loginByWechat(@RequestBody LoginByWechatSecretRequest request){
         try{
