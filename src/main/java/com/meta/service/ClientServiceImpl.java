@@ -32,6 +32,7 @@ public class ClientServiceImpl implements ClientDetailsService {
         List<String> authorizedGrantTypes = new ArrayList<>();
         authorizedGrantTypes.add("password");
         authorizedGrantTypes.add("refresh_token");
+        authorizedGrantTypes.add("wechat");
         clientDetails.setAuthorizedGrantTypes(authorizedGrantTypes);
         // 权限（对应的角色）
 //        List<GrantedAuthority> authorities = new ArrayList<>();

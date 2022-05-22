@@ -117,7 +117,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .accessTokenConverter(accessTokenConverter())
                 .userDetailsService(userDetailsServiceImpl)
                 // 获取所有认证类型
-//                .tokenGranter(this.getDefaultTokenGranters(endpoints))
+                .tokenGranter(this.getDefaultTokenGranters(endpoints))
                 .tokenStore(tokenStore())
                 // refresh token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
 //                //      1 重复使用：access token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
@@ -178,15 +178,15 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     private TokenGranter getDefaultTokenGranters(AuthorizationServerEndpointsConfigurer endpoints) {
         // 获取原有默认的授权类型
         ArrayList<TokenGranter> tokenGranters = new ArrayList<>(Collections.singletonList(endpoints.getTokenGranter()));
-//        // 创建自定义认证类型
-//        WeChatTokenGranter weChatTokenGranter = new WeChatTokenGranter(
-//                endpoints.getTokenServices(),
-//                endpoints.getClientDetailsService(),
-//                endpoints.getOAuth2RequestFactory(),
-//                "wechat"
-//        );
-//        // 将自定义认证类型加入到原有的认证集合中 返回
-//        tokenGranters.add(weChatTokenGranter);
+        // 创建自定义认证类型
+        WeChatTokenGranter weChatTokenGranter = new WeChatTokenGranter(
+                endpoints.getTokenServices(),
+                endpoints.getClientDetailsService(),
+                endpoints.getOAuth2RequestFactory(),
+                "wechat"
+        );
+        // 将自定义认证类型加入到原有的认证集合中 返回
+        tokenGranters.add(weChatTokenGranter);
         return new CompositeTokenGranter(tokenGranters);
     }
 

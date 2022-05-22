@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -14,6 +16,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Resource;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,19 +48,27 @@ public class OauthController {
 //        return tokenEndpoint.postAccessToken(principal, parameters).getBody();
 //    }
 //
-//    @GetMapping("/token")
-//    public Object postAccessToken(Principal principal) throws HttpRequestMethodNotSupportedException {
-//        Map<String, String> parameters = new HashMap<>();
-//        parameters.put("grant_type","wechat");
-//        parameters.put("client_id","martin");
-//        parameters.put("client_secret","123");
-//        parameters.put("smscode","123456");
-//        parameters.put("mobile","admin");
-////        parameters.put("username","admin");
-////        parameters.put("password","123");
-//        parameters.put("scope","all");
-//        return tokenEndpoint.postAccessToken(principal, parameters).getBody();
-//    }
+    @GetMapping("/login")
+    public Object postAccessToken() throws HttpRequestMethodNotSupportedException {
+        //创建客户端信息,客户端信息可以写死进行处理，因为Oauth2密码模式，客户端双信息必须存在，所以伪装一个
+        //如果不想这么用，需要重写比较多的代码
+        //这里设定，调用这个接口的都是资源服务
+        User clientUser = new User("martin", "123", new ArrayList<>());
+        //生成已经认证的client
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("grant_type","wechat");
+//        parameters.put("grant_type","password");
+        parameters.put("client_id","martin");
+        parameters.put("client_secret","123");
+        parameters.put("smscode","123456");
+        parameters.put("mobile","admin");
+//        parameters.put("username","admin");
+//        parameters.put("password","123");
+        parameters.put("scope","all");
+        return tokenEndpoint.postAccessToken(token, parameters).getBody();
+    }
 
 }
 
