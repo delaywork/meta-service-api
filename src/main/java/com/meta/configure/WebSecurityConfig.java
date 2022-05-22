@@ -13,8 +13,8 @@ import javax.annotation.Resource;
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Resource
-    private WeChatAuthenticationProvider weChatAuthenticationProvider;
+//    @Resource
+//    private WeChatAuthenticationProvider weChatAuthenticationProvider;
 
     @Bean
     @Override
@@ -42,10 +42,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    }
 //
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(weChatAuthenticationProvider);
-    }
+//    @Override
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        auth.authenticationProvider(weChatAuthenticationProvider);
+//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
