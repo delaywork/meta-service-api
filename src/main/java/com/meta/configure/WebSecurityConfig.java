@@ -8,8 +8,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import javax.annotation.Resource;
+
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Resource
+    private WeChatAuthenticationProvider weChatAuthenticationProvider;
+
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
@@ -35,9 +41,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //                .roles("user");
 //    }
 //
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(weChatAuthenticationProvider);
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/oauth/**").permitAll()
+        http.authorizeRequests().antMatchers("/oauth/**","/token").permitAll()
                 .anyRequest().authenticated().and()
                 .httpBasic().and()
                 .csrf().disable();

@@ -112,28 +112,18 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         tokenEnhancerList.add(accessTokenConverter());
         tokenEnhancerChain.setTokenEnhancers(tokenEnhancerList);
 
-//        endpoints.tokenEnhancer(tokenEnhancerChain)
-//                .authenticationManager(authenticationManager)
-//                .accessTokenConverter(accessTokenConverter())
-//                .userDetailsService(userDetailsServiceImpl)
-//                // 自定义的TokenGranter,需要打开 否则关闭即可
-//                .tokenGranter(this.getDefaultTokenGranters(endpoints))
-//                .tokenStore(tokenStore())
-//                // refresh token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
-//                //      1 重复使用：access token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
-//                //      2 非重复使用：access token过期刷新时， refresh token过期时间延续，在refresh token有效期内刷新便永不失效达到无需再次登录的目的
-//                .reuseRefreshTokens(true)
-//                // 允许 GET、POST 请求获取 token，即访问端点：oauth/token
-//                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
-
-
         endpoints.tokenEnhancer(tokenEnhancerChain)
             .authenticationManager(authenticationManager)
                 .accessTokenConverter(accessTokenConverter())
                 .userDetailsService(userDetailsServiceImpl)
-                .tokenGranter(this.getDefaultTokenGranters(endpoints))
+                // 获取所有认证类型
+//                .tokenGranter(this.getDefaultTokenGranters(endpoints))
                 .tokenStore(tokenStore())
+                // refresh token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
+//                //      1 重复使用：access token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
+//                //      2 非重复使用：access token过期刷新时， refresh token过期时间延续，在refresh token有效期内刷新便永不失效达到无需再次登录的目的
                 .reuseRefreshTokens(true)
+                // 允许 GET、POST 请求获取 token，即访问端点：oauth/token
                 .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
 
     }
@@ -188,6 +178,15 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     private TokenGranter getDefaultTokenGranters(AuthorizationServerEndpointsConfigurer endpoints) {
         // 获取原有默认的授权类型
         ArrayList<TokenGranter> tokenGranters = new ArrayList<>(Collections.singletonList(endpoints.getTokenGranter()));
+//        // 创建自定义认证类型
+//        WeChatTokenGranter weChatTokenGranter = new WeChatTokenGranter(
+//                endpoints.getTokenServices(),
+//                endpoints.getClientDetailsService(),
+//                endpoints.getOAuth2RequestFactory(),
+//                "wechat"
+//        );
+//        // 将自定义认证类型加入到原有的认证集合中 返回
+//        tokenGranters.add(weChatTokenGranter);
         return new CompositeTokenGranter(tokenGranters);
     }
 
