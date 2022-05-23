@@ -1,13 +1,17 @@
 package com.meta.configure;
 
+import com.meta.filter.TokenFilter;
+import com.meta.utils.UrlWhiteListUtil;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Configuration
 @EnableResourceServer
@@ -15,21 +19,27 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     @Resource
     private TokenStore tokenStore;
+    @Resource
+    private TokenFilter tokenFilter;
+    @Resource
+    private ResourceTokenExceptionEntryPoint resourceTokenExceptionEntryPoint;
+    @Resource
+    private UrlWhiteListUtil urlWhiteListUtil;
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
-        resources.stateless(true).tokenStore(tokenStore);
-//        resources.resourceId("rid") // 配置资源id，这里的资源id和授权服务器中的资源id一致
-//                .stateless(true); // 设置这些资源仅基于令牌认证
+        resources.stateless(true).tokenStore(tokenStore).authenticationEntryPoint(resourceTokenExceptionEntryPoint);
     }
 
     // 配置 URL 访问权限
     @Override
     public void configure(HttpSecurity http) throws Exception {
+        List<String> urls = urlWhiteListUtil.urlWhiteList();
         http.authorizeRequests()
-                .antMatchers("/oauth/**","/token").permitAll()
+                .antMatchers(urls.toArray(new String[]{})).permitAll()
                 .antMatchers("/admin/**").hasRole("admin")
                 .antMatchers("/user/**").hasAuthority("admin")
-                .anyRequest().authenticated();
+                .anyRequest().authenticated().and().httpBasic().and().csrf().disable();
+        http.addFilterBefore(tokenFilter, BasicAuthenticationFilter.class);
     }
 }

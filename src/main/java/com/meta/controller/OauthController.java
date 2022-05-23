@@ -1,13 +1,21 @@
 package com.meta.controller;
 
+import com.meta.model.FastRunTimeException;
+import com.meta.model.ReturnData;
+import com.meta.model.enums.OauthGrantTypeEnum;
+import com.meta.model.request.LoginByWechatRequest;
+import com.meta.utils.RSAUtil;
+import com.meta.utils.WechatUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -22,52 +30,70 @@ import java.util.Map;
 
 @Api(tags = "认证中心")
 @RestController
-@RequestMapping("/oauth")
 @Slf4j
 public class OauthController {
+
+    @Value("${META_CLIENT_ID:}")
+    private String meta_client_id;
+    @Value("${META_CLIENT_SECRET:}")
+    private String meta_client_secret;
 
     @Resource
     private TokenEndpoint tokenEndpoint;
 
-//    @ApiOperation(value = "OAuth2认证", notes = "login")
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "grant_type", defaultValue = "password", value = "授权模式", required = true),
-//            @ApiImplicitParam(name = "client_id", value = "Oauth2客户端ID（新版本需放置请求头）", required = true),
-//            @ApiImplicitParam(name = "client_secret", value = "Oauth2客户端秘钥（新版本需放置请求头）", required = true),
-//            @ApiImplicitParam(name = "refresh_token", value = "刷新token"),
-//            @ApiImplicitParam(name = "username", defaultValue = "admin", value = "登录用户名"),
-//            @ApiImplicitParam(name = "password", defaultValue = "123456", value = "登录密码"),
-//            @ApiImplicitParam(name = "phone", defaultValue = "13888888888", value = "手机号"),
-//            @ApiImplicitParam(name = "smsCode", defaultValue = "000000", value = "验证码")
-//    })
-//    @PostMapping("/token")
-//    public Object postAccessToken(
-//            @ApiIgnore Principal principal,
-//            @ApiIgnore @RequestParam Map<String, String> parameters
-//    ) throws HttpRequestMethodNotSupportedException {
-//        return tokenEndpoint.postAccessToken(principal, parameters).getBody();
-//    }
-//
-    @GetMapping("/login")
-    public Object postAccessToken() throws HttpRequestMethodNotSupportedException {
-        //创建客户端信息,客户端信息可以写死进行处理，因为Oauth2密码模式，客户端双信息必须存在，所以伪装一个
-        //如果不想这么用，需要重写比较多的代码
-        //这里设定，调用这个接口的都是资源服务
-        User clientUser = new User("martin", "123", new ArrayList<>());
-        //生成已经认证的client
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
 
+    @GetMapping("/oauth/login")
+    public Object postAccessToken() throws HttpRequestMethodNotSupportedException {
+        // 构造一个被认证的客户端
+        User clientUser = new User(meta_client_id, meta_client_secret, new ArrayList<>());
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
+        // 认证参数
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("grant_type","wechat");
-//        parameters.put("grant_type","password");
-        parameters.put("client_id","martin");
-        parameters.put("client_secret","123");
-        parameters.put("smscode","123456");
-        parameters.put("mobile","admin");
-//        parameters.put("username","admin");
-//        parameters.put("password","123");
+        parameters.put("grant_type", OauthGrantTypeEnum.PASSWORD.getOauthValue());
+        parameters.put("client_id",meta_client_id);
+        parameters.put("client_secret",meta_client_secret);
+//        parameters.put("smscode","123456");
+//        parameters.put("mobile","admin");
+        parameters.put("username","admin");
+        parameters.put("password","123");
         parameters.put("scope","all");
-        return tokenEndpoint.postAccessToken(token, parameters).getBody();
+        try{
+            OAuth2AccessToken oAuth2AccessToken = tokenEndpoint.postAccessToken(token, parameters).getBody();
+            return ReturnData.success(oAuth2AccessToken);
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    @GetMapping("/token")
+    public ReturnData token(@RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam("jsCode") String jsCode) throws HttpRequestMethodNotSupportedException {
+        // 构造一个被认证的客户端
+        User clientUser = new User(meta_client_id, meta_client_secret, new ArrayList<>());
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
+        // 认证参数
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("grant_type", authType.getOauthValue());
+        parameters.put("client_id",meta_client_id);
+        parameters.put("client_secret",meta_client_secret);
+        parameters.put("scope","all");
+        parameters.put("jsCode",jsCode);
+        try{
+            OAuth2AccessToken oAuth2AccessToken = tokenEndpoint.postAccessToken(token, parameters).getBody();
+            return ReturnData.success(oAuth2AccessToken);
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    public static void main(String[] args) {
+        String pass = "meta";
+        BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
+        String hashPass = bcryptPasswordEncoder.encode(pass);
+        System.out.println(hashPass);
+
+        boolean f = bcryptPasswordEncoder.matches("123","$2a$10$RMuFXGQ5AtH4wOvkUqyvuecpqUSeoxZYqilXzbz50dceRsga.WYiq");
+        System.out.println(f);
+
     }
 
 }

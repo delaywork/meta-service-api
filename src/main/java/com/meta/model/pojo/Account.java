@@ -31,10 +31,6 @@ public class Account extends BaseModel {
     @TableField(value = "unionid")
     private String unionid;
 
-    // 微信认证状态（1：进行过微信认证， 0：未进行过微信认证）
-    @TableField(value = "wechat_auth")
-    private Boolean wechatAuth;
-
     // 用户名
     @TableField(value = "name")
     private String name;
@@ -44,8 +40,8 @@ public class Account extends BaseModel {
     private String email;
 
     // 手机前缀
-    @TableField(value = "phone_prefix")
-    private String phonePrefix;
+    @TableField(value = "area_code")
+    private String areaCode;
 
     // 手机
     @TableField(value = "phone")
@@ -58,10 +54,6 @@ public class Account extends BaseModel {
     // 用户头像
     @TableField(value = "avatar_url")
     private String avatarUrl;
-
-    // 用户密码盐
-    @TableField(value = "password_salt")
-    private String passwordSalt;
 
     // 租户id
     @TableField(value = "tenant_id")

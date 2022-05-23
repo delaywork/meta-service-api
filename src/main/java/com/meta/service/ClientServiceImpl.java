@@ -1,26 +1,30 @@
 package com.meta.service;
 
-import org.checkerframework.checker.units.qual.A;
-import org.springframework.security.core.GrantedAuthority;
+import com.meta.model.enums.OauthGrantTypeEnum;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.stereotype.Service;
-import sun.misc.BASE64Encoder;
-
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ClientServiceImpl implements ClientDetailsService {
 
+    @Value("${META_CLIENT_ID:}")
+    private String meta_client_id;
+    @Value("${META_CLIENT_SECRET:}")
+    private String meta_client_secret;
+
     @Override
     public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         BaseClientDetails clientDetails = new BaseClientDetails();
         // 客户端 id
-        clientDetails.setClientId("martin");
+        clientDetails.setClientId(meta_client_id);
+        // 客户端密钥
+        clientDetails.setClientSecret(meta_client_secret);
         // 资源 ids
         List<String> resourceIds = new ArrayList<>();
         clientDetails.setResourceIds(resourceIds);
@@ -30,15 +34,13 @@ public class ClientServiceImpl implements ClientDetailsService {
         clientDetails.setScope(scopes);
         // 认证类型
         List<String> authorizedGrantTypes = new ArrayList<>();
-        authorizedGrantTypes.add("password");
-        authorizedGrantTypes.add("refresh_token");
-        authorizedGrantTypes.add("wechat");
+        authorizedGrantTypes.add(OauthGrantTypeEnum.PASSWORD.getOauthValue());
+        authorizedGrantTypes.add(OauthGrantTypeEnum.REFRESH_TOKEN.getOauthValue());
+        authorizedGrantTypes.add(OauthGrantTypeEnum.WECHAT.getOauthValue());
         clientDetails.setAuthorizedGrantTypes(authorizedGrantTypes);
         // 权限（对应的角色）
 //        List<GrantedAuthority> authorities = new ArrayList<>();
 //        clientDetails.setAuthorities(authorities);
-        // 客户端密钥
-        clientDetails.setClientSecret("$2a$10$RMuFXGQ5AtH4wOvkUqyvuecpqUSeoxZYqilXzbz50dceRsga.WYiq");
         // access token 有效时间
         clientDetails.setAccessTokenValiditySeconds(1800);
         // refresh token 有效时间
@@ -49,9 +51,4 @@ public class ClientServiceImpl implements ClientDetailsService {
         return clientDetails;
     }
 
-    public static void main(String[] args) {
-        final BASE64Encoder encoder = new BASE64Encoder();
-        String encode = encoder.encode("martin".getBytes(StandardCharsets.UTF_8));
-        System.out.println(encode);
-    }
 }

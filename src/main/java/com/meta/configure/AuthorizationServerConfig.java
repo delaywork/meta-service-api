@@ -1,9 +1,11 @@
 package com.meta.configure;
 
+import com.meta.model.enums.OauthGrantTypeEnum;
 import com.meta.model.request.vo.UserOauthVo;
 import com.meta.service.ClientServiceImpl;
 import com.meta.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -38,6 +40,10 @@ import java.util.*;
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
+
+    @Value("${JWT_SIGNING_KEY:}")
+    private String jwt_signing_key;
+
     // 该对象用来支持 password 模式
     @Autowired
     AuthenticationManager authenticationManager;
@@ -55,22 +61,15 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Resource
     private UserDetailsServiceImpl userDetailsServiceImpl;
 
+    @Resource
+    private OauthWebResponseExceptionTranslator oauthWebResponseExceptionTranslator;
+
     // 配置授权模式
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         // 获取客户端配置
         clients.withClientDetails(clientService);
     }
-
-    /*
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
-        endpoints.tokenStore(new RedisTokenStore(redisConnectionFactory)) //配置令牌存放在Redis中
-                .authenticationManager(authenticationManager)
-                .userDetailsService(userDetailsService);
-    }
-
-     */
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) {
@@ -114,20 +113,18 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
         endpoints.tokenEnhancer(tokenEnhancerChain)
             .authenticationManager(authenticationManager)
-                .accessTokenConverter(accessTokenConverter())
-                .userDetailsService(userDetailsServiceImpl)
-                // 获取所有认证类型
-                .tokenGranter(this.getDefaultTokenGranters(endpoints))
-                .tokenStore(tokenStore())
-                // refresh token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
-//                //      1 重复使用：access token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
-//                //      2 非重复使用：access token过期刷新时， refresh token过期时间延续，在refresh token有效期内刷新便永不失效达到无需再次登录的目的
-                .reuseRefreshTokens(true)
-                // 允许 GET、POST 请求获取 token，即访问端点：oauth/token
-                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
+            .accessTokenConverter(accessTokenConverter())
+            .userDetailsService(userDetailsServiceImpl)
+            .tokenGranter(this.getDefaultTokenGranters(endpoints))// 获取所有认证类型
+            .tokenStore(tokenStore())
+            .exceptionTranslator(oauthWebResponseExceptionTranslator)// 认证异常自定义处理
+            .reuseRefreshTokens(true)// refresh token：重复使用(true：不生成新的 refresh token)、非重复使用(false：生成新的 refresh token)，默认为true
+            .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);// 允许 GET、POST 请求获取 token，即访问端点：oauth/token
 
+        endpoints.tokenStore(new RedisTokenStore(redisConnectionFactory)) //配置令牌存放在Redis中
+            .authenticationManager(authenticationManager)
+            .userDetailsService(userDetailsService);
     }
-
 
     /**
      * JWT 生成token 定制处理
@@ -150,18 +147,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
-        // 方式一：采用公钥+私钥
-        // jwtAccessTokenConverter.setKeyPair(keyPair());
-        // 方式二： 直接写死
-        jwtAccessTokenConverter.setSigningKey("abcd123456");
+        jwtAccessTokenConverter.setSigningKey(jwt_signing_key);
         return jwtAccessTokenConverter;
     }
-
-//    @Bean
-//    public KeyPair keyPair() {
-//        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("jwt.jks"), "123456".toCharArray());
-//        return keyStoreKeyFactory.getKeyPair("jwt", "123456".toCharArray());
-//    }
 
     /**
      * 使用redis 存取token
@@ -183,7 +171,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 endpoints.getTokenServices(),
                 endpoints.getClientDetailsService(),
                 endpoints.getOAuth2RequestFactory(),
-                "wechat"
+                OauthGrantTypeEnum.WECHAT.getOauthValue()
         );
         // 将自定义认证类型加入到原有的认证集合中 返回
         tokenGranters.add(weChatTokenGranter);
