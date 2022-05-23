@@ -9,16 +9,15 @@ import com.meta.model.FastRunTimeException;
 import com.meta.model.TokenResponse;
 import com.meta.model.pojo.Account;
 import com.meta.model.pojo.Tenant;
-import com.meta.model.request.BindPhoneRequest;
-import com.meta.model.request.LoginByWechatCloudDTO;
-import com.meta.model.request.LoginByWechatRequest;
+import com.meta.model.request.*;
 import com.meta.model.response.LoginByWechatResponse;
 import com.meta.utils.*;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +28,7 @@ public class AccountServiceImpl {
     @Autowired
     private AccountMapper accountMapper;
     @Autowired
-    private TenantMapper tenantMapper;
+    private TenantServiceImpl tenantService;
     @Autowired
     private WechatUtil wechatUtil;
     @Autowired
@@ -48,22 +47,21 @@ public class AccountServiceImpl {
         Account account = accountMapper.selectOne(wrapper);
         if (ObjectUtil.isEmpty(account)){
             // 创建Tenant
-            Tenant tenant = Tenant.builder().build();
-            tenantMapper.insert(tenant);
+            Long tenantId = tenantService.addTenant();
             // 创建Account
-            account = Account.builder().openid(request.getOpenid()).unionid(request.getUnionid()).wechatAuth(true).name(request.getName()).tenantId(tenant.getId()).build();
+            account = Account.builder().openid(request.getOpenid()).unionid(request.getUnionid()).name(request.getName()).tenantId(tenantId).build();
             accountMapper.insert(account);
         }
         Long tenantId = account.getTenantId();
         TokenResponse tokenResponse = new TokenResponse();
-        if (StringUtils.isEmpty(account.getPhonePrefix()) || StringUtils.isEmpty(account.getPhone())){
+        if (StringUtils.isEmpty(account.getAreaCode()) || StringUtils.isEmpty(account.getPhone())){
             // 生成未进行手机号验证的 Token
             response.setPhoneAuth(false);
             tokenResponse = JWTUtil.getAccessTokenAndRefreshToken(account.getId(), tenantId, null, null);
         }else{
             // 生成进行过手机号验证的 Token
             response.setPhoneAuth(true);
-            tokenResponse = JWTUtil.getAccessTokenAndRefreshToken(account.getId(), tenantId, account.getPhonePrefix(), account.getPhone());
+            tokenResponse = JWTUtil.getAccessTokenAndRefreshToken(account.getId(), tenantId, account.getAreaCode(), account.getPhone());
         }
         response.setAccessToken(tokenResponse.getAccessToken());
         response.setRefreshToken(tokenResponse.getRefreshToken());
@@ -109,11 +107,11 @@ public class AccountServiceImpl {
         // 清空历史发送的验证码
         redisUtil.deleteAll(RedisKeys.SIGN_UP_SMS_CODE + request.getPhone());
         // 绑定手机号
-        account.setPhonePrefix(request.getPhonePrefix());
+        account.setAreaCode(request.getPhonePrefix());
         account.setPhone(request.getPhone());
         accountMapper.updateById(account);
         // 生成 token
-        TokenResponse tokenResponse = JWTUtil.getAccessTokenAndRefreshToken(account.getId(), request.getTenantId(), account.getPhonePrefix(), account.getPhone());
+        TokenResponse tokenResponse = JWTUtil.getAccessTokenAndRefreshToken(account.getId(), request.getTenantId(), account.getAreaCode(), account.getPhone());
         return tokenResponse;
     }
 
@@ -126,6 +124,54 @@ public class AccountServiceImpl {
         Account account = accountMapper.selectOne(wrapper);
         return account;
     }
+
+    /**
+     * 查询账号
+     * */
+    public Account getAccount(GetAccountRequest request){
+        QueryWrapper<Account> wrapper = new QueryWrapper<>();
+        if (ObjectUtils.isNotEmpty(request.getAccountId())){
+            wrapper.lambda().eq(Account::getId, request.getAccountId());
+        }
+        if (ObjectUtils.isNotEmpty(request.getOpenid())){
+            wrapper.lambda().eq(Account::getOpenid, request.getOpenid());
+        }
+        if (ObjectUtils.isNotEmpty(request.getUnionid())){
+            wrapper.lambda().eq(Account::getUnionid, request.getUnionid());
+        }
+        wrapper.lambda().last("limit 1");
+        Account account = accountMapper.selectOne(wrapper);
+        return account;
+    }
+
+    /**
+     * 创建账号
+     * */
+    public Account addAccount(AddAccountRequest request){
+        // 校验账户是否存在
+        Account account = this.getAccount(GetAccountRequest.builder().openid(request.getOpenid()).unionid(request.getUnionid()).build());
+        if (ObjectUtils.isNotEmpty(account)){
+            log.info("addAccount ---> 账号已经存在，accountId:{}", account.getId());
+            return account;
+        }
+        // 创建 tenant
+        Long tenantId = tenantService.addTenant();
+        // 创建 account
+        Account newAccount = new Account();
+        newAccount.setOpenid(request.getOpenid());
+        newAccount.setUnionid(request.getUnionid());
+        newAccount.setName(request.getName());
+        newAccount.setAvatarUrl(request.getAvatarUrl());
+        if (ObjectUtils.isNotEmpty(request.getPassword())){
+            BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
+            String password = bcryptPasswordEncoder.encode(request.getPassword());
+            newAccount.setPassword(password);
+        }
+        newAccount.setTenantId(tenantId);
+        accountMapper.insert(newAccount);
+        return newAccount;
+    }
+
 
 
 
