@@ -41,30 +41,6 @@ public class OauthController {
     @Resource
     private TokenEndpoint tokenEndpoint;
 
-
-    @GetMapping("/oauth/login")
-    public Object postAccessToken() throws HttpRequestMethodNotSupportedException {
-        // 构造一个被认证的客户端
-        User clientUser = new User(meta_client_id, meta_client_secret, new ArrayList<>());
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
-        // 认证参数
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("grant_type", OauthGrantTypeEnum.PASSWORD.getOauthValue());
-        parameters.put("client_id",meta_client_id);
-        parameters.put("client_secret",meta_client_secret);
-//        parameters.put("smscode","123456");
-//        parameters.put("mobile","admin");
-        parameters.put("username","martin");
-        parameters.put("password","123");
-        parameters.put("scope","all");
-        try{
-            OAuth2AccessToken oAuth2AccessToken = tokenEndpoint.postAccessToken(token, parameters).getBody();
-            return ReturnData.success(oAuth2AccessToken);
-        }catch (FastRunTimeException fastRunTimeException){
-            return ReturnData.failed(fastRunTimeException);
-        }
-    }
-
     @GetMapping("/token")
     public ReturnData token(@RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam("jsCode") String jsCode) throws HttpRequestMethodNotSupportedException {
         // 构造一个被认证的客户端

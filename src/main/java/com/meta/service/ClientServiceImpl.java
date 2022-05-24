@@ -14,17 +14,21 @@ import java.util.List;
 public class ClientServiceImpl implements ClientDetailsService {
 
     @Value("${META_CLIENT_ID:}")
-    private String meta_client_id;
+    private String META_CLIENT_ID;
     @Value("${META_CLIENT_SECRET:}")
-    private String meta_client_secret;
+    private String META_CLIENT_SECRET;
+    @Value("${ACCESS_TOKEN_VALIDITY_SECONDS:}")
+    private Integer ACCESS_TOKEN_VALIDITY_SECONDS;
+    @Value("${REFRESH_TOKEN_VALIDITY_SECONDS:}")
+    private Integer REFRESH_TOKEN_VALIDITY_SECONDS;
 
     @Override
     public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         BaseClientDetails clientDetails = new BaseClientDetails();
         // 客户端 id
-        clientDetails.setClientId(meta_client_id);
+        clientDetails.setClientId(META_CLIENT_ID);
         // 客户端密钥
-        clientDetails.setClientSecret(meta_client_secret);
+        clientDetails.setClientSecret(META_CLIENT_SECRET);
         // 资源 ids
         List<String> resourceIds = new ArrayList<>();
         clientDetails.setResourceIds(resourceIds);
@@ -42,9 +46,9 @@ public class ClientServiceImpl implements ClientDetailsService {
 //        List<GrantedAuthority> authorities = new ArrayList<>();
 //        clientDetails.setAuthorities(authorities);
         // access token 有效时间
-        clientDetails.setAccessTokenValiditySeconds(1800);
+        clientDetails.setAccessTokenValiditySeconds(ACCESS_TOKEN_VALIDITY_SECONDS);
         // refresh token 有效时间
-        clientDetails.setRefreshTokenValiditySeconds(1800);
+        clientDetails.setRefreshTokenValiditySeconds(REFRESH_TOKEN_VALIDITY_SECONDS);
         // 回调 url
 //        clientDetails.setRegisteredRedirectUri();
 

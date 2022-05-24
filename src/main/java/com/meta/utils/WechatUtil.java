@@ -18,10 +18,10 @@ import java.util.Map;
 @Component
 public class WechatUtil {
 
-    @Value("${wechat.appid:}")
-    private String appid;
-    @Value("${wechat.secret:}")
-    private String secret;
+    @Value("${WECHAT_APPID:}")
+    private String WECHAT_APPID;
+    @Value("${WECHAT_SECRET:}")
+    private String WECHAT_SECRET;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -29,8 +29,8 @@ public class WechatUtil {
     public WechatUtilLoginResponse login(String jsCode) {
         String url = "https://api.weixin.qq.com/sns/jscode2session?appid={appid}&secret={secret}&js_code={code}&grant_type=authorization_code";
         Map<String, String> requestMap = new HashMap<>();
-        requestMap.put("appid", appid);
-        requestMap.put("secret", secret);
+        requestMap.put("appid", WECHAT_APPID);
+        requestMap.put("secret", WECHAT_SECRET);
         requestMap.put("code", jsCode);
         try{
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class,requestMap);
