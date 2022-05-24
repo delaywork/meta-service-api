@@ -17,7 +17,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         //TODO 此处应该是动态获取 目前做测试 先写死
         List<SimpleGrantedAuthority> roles = new ArrayList<>();
         roles.add(new SimpleGrantedAuthority("admin"));
-        UserOauthVo user = new UserOauthVo(1l, "admin", "$2a$10$RMuFXGQ5AtH4wOvkUqyvuecpqUSeoxZYqilXzbz50dceRsga.WYiq", true, roles);
+        UserOauthVo user = new UserOauthVo(1l, "martin", "$2a$10$RMuFXGQ5AtH4wOvkUqyvuecpqUSeoxZYqilXzbz50dceRsga.WYiq", true,roles);
         return user;
     }
 }

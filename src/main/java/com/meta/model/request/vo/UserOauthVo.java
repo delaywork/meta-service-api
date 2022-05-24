@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class UserOauthVo implements UserDetails {
 
     private Collection<SimpleGrantedAuthority> authorities;
 
-    public UserOauthVo(Long userId, String username, String password, Boolean enabled, Collection<SimpleGrantedAuthority> authorities) {
+    public UserOauthVo(Long userId, String username, String password, Boolean enabled,Collection<SimpleGrantedAuthority> authorities) {
         this.setUserId(userId);
         this.setUsername(username);
         this.setPassword(password);

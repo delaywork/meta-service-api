@@ -54,7 +54,7 @@ public class OauthController {
         parameters.put("client_secret",meta_client_secret);
 //        parameters.put("smscode","123456");
 //        parameters.put("mobile","admin");
-        parameters.put("username","admin");
+        parameters.put("username","martin");
         parameters.put("password","123");
         parameters.put("scope","all");
         try{
@@ -93,6 +93,7 @@ public class OauthController {
 
         boolean f = bcryptPasswordEncoder.matches("123","$2a$10$RMuFXGQ5AtH4wOvkUqyvuecpqUSeoxZYqilXzbz50dceRsga.WYiq");
         System.out.println(f);
+
 
     }
 

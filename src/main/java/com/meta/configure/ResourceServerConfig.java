@@ -1,6 +1,7 @@
 package com.meta.configure;
 
 import com.meta.filter.TokenFilter;
+import com.meta.model.enums.AuthorityEnum;
 import com.meta.utils.UrlWhiteListUtil;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,7 +39,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers(urls.toArray(new String[]{})).permitAll()
                 .antMatchers("/admin/**").hasRole("admin")
-                .antMatchers("/user/**").hasAuthority("admin")
+                .antMatchers("/user/**").hasAuthority("INBOX")
+                .antMatchers("/user").hasAnyAuthority(AuthorityEnum.INBOX.getValue(), AuthorityEnum.ALL.getValue())
                 .anyRequest().authenticated().and().httpBasic().and().csrf().disable();
         http.addFilterBefore(tokenFilter, BasicAuthenticationFilter.class);
     }

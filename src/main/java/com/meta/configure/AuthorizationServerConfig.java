@@ -41,7 +41,7 @@ import java.util.*;
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
 
-    @Value("${JWT_SIGNING_KEY:}")
+    @Value("${JWT_SIGNING_KEY:pbiRBFxfdeDVm4VDVrTy72v9DC+2L5vbclMNM2iO2SE=}")
     private String jwt_signing_key;
 
     // 该对象用来支持 password 模式
@@ -96,7 +96,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-//        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     /**
@@ -120,10 +119,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
             .exceptionTranslator(oauthWebResponseExceptionTranslator)// 认证异常自定义处理
             .reuseRefreshTokens(true)// refresh token：重复使用(true：不生成新的 refresh token)、非重复使用(false：生成新的 refresh token)，默认为true
             .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);// 允许 GET、POST 请求获取 token，即访问端点：oauth/token
-
-        endpoints.tokenStore(new RedisTokenStore(redisConnectionFactory)) //配置令牌存放在Redis中
-            .authenticationManager(authenticationManager)
-            .userDetailsService(userDetailsService);
     }
 
     /**
