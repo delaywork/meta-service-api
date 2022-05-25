@@ -9,11 +9,11 @@ import java.util.List;
 @Component
 public class UrlWhiteListUtil {
 
-    @Value("${url.white.list:}")
-    private String url_white;
+    @Value("${WHITE_LIST_URL:}")
+    private String WHITE_LIST_URL;
 
     public List<String> urlWhiteList(){
-        List<String> urlWhiteList = Arrays.asList(url_white.split(","));
+        List<String> urlWhiteList = Arrays.asList(WHITE_LIST_URL.split(","));
         return urlWhiteList;
     }
 

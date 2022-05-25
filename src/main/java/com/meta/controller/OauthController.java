@@ -42,7 +42,8 @@ public class OauthController {
     private TokenEndpoint tokenEndpoint;
 
     @GetMapping("/token")
-    public ReturnData token(@RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam("jsCode") String jsCode) throws HttpRequestMethodNotSupportedException {
+    public ReturnData token(@RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam(value = "jsCode", required = false) String jsCode,
+                            @RequestParam(value = "userName", required = false) String userName, @RequestParam(value = "avatarUrl", required = false) String avatarUrl) throws HttpRequestMethodNotSupportedException {
         // 构造一个被认证的客户端
         User clientUser = new User(meta_client_id, meta_client_secret, new ArrayList<>());
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
@@ -52,6 +53,8 @@ public class OauthController {
         parameters.put("client_id",meta_client_id);
         parameters.put("client_secret",meta_client_secret);
         parameters.put("scope","all");
+        parameters.put("userName",userName);
+        parameters.put("avatarUrl",avatarUrl);
         parameters.put("jsCode",jsCode);
         try{
             OAuth2AccessToken oAuth2AccessToken = tokenEndpoint.postAccessToken(token, parameters).getBody();

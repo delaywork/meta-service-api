@@ -26,6 +26,7 @@ public class OauthJWTUtil {
             return MetaClaims.builder().build();
         }
         token = token.replace(" ", "").substring(6);
+
         Claims claims = Jwts.parserBuilder().setSigningKey(jwt_signing_key.getBytes(StandardCharsets.UTF_8)).build().parseClaimsJws(token).getBody();
         Long accountId = claims.get("userId", Long.class);
         String accountName = claims.get("username", String.class);

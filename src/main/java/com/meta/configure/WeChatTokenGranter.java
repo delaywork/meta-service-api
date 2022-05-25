@@ -46,10 +46,12 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
         LinkedHashMap<String, String> parameters  = new LinkedHashMap<>(tokenRequest.getRequestParameters());
         // 微信认证
         String jsCode = parameters.get("jsCode");
+        String userName = parameters.get("userName");
+        String avatarUrl = parameters.get("avatarUrl");
         log.info("微信认证 jsCode:{}", jsCode);
         WechatUtilLoginResponse wechatResponse = wechatUtil.login(jsCode);
 //        WechatUtilLoginResponse wechatResponse = new WechatUtilLoginResponse();
-//        wechatResponse.setOpenid("1");
+//        wechatResponse.setOpenid("2");
 //        wechatResponse.setUnionid("2");
         if (ObjectUtils.isEmpty(wechatResponse)){
             log.info("微信认证失败 jsCode:{}", jsCode);
@@ -60,7 +62,7 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
         if (ObjectUtils.isEmpty(account)){
             // 创建账户
             log.info("创建微信关联账号，openId:{}, unionId:{}", wechatResponse.getOpenid(), wechatResponse.getUnionid());
-            account = accountService.addAccount(AddAccountRequest.builder().openid(wechatResponse.getOpenid()).unionid(wechatResponse.getUnionid()).name("martin").build());
+            account = accountService.addAccount(AddAccountRequest.builder().openid(wechatResponse.getOpenid()).unionid(wechatResponse.getUnionid()).name(userName).avatarUrl(avatarUrl).build());
         }
         // 生成认证账号信息
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();

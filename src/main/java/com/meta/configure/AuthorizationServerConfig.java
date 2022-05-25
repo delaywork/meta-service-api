@@ -4,6 +4,8 @@ import com.meta.model.enums.OauthGrantTypeEnum;
 import com.meta.model.request.vo.UserOauthVo;
 import com.meta.service.ClientServiceImpl;
 import com.meta.service.UserDetailsServiceImpl;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +36,7 @@ import org.springframework.security.oauth2.provider.token.store.redis.RedisToken
 
 import javax.annotation.Resource;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.*;
 
 @Configuration
