@@ -25,15 +25,17 @@ SERVER_PORT=8080
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=martin
+REDIS_SSL=false
 ```
 
 ### 如何设置 Mysql 连接？
 
 修改配置文件中的 Mysql 相关配置。
 ```properties
-DATASOURCE_DBHOST=127.0.0.1:3306
-DATASOURCE_USERNAME=root
-DATASOURCE_PASSWORD=martin
+MYSQL_HOST=127.0.0.1:3306
+MYSQL_USERNAME=root
+MYSQL_PASSWORD=martin
+MYSQL_SSL=false
 ```
 
 ### 如何设置客户端的 clientId、clientSecret？
