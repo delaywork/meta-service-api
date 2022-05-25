@@ -46,7 +46,7 @@ public class DataRoomController {
     public ReturnData addFolder(@RequestBody AddFolderDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            DataRoom dataRoom = DataRoom.builder().name(request.getName()).note(request.getNote())
+            DataRoom dataRoom = DataRoom.builder().name(request.getName()).comments(request.getComments())
                     .parentId(request.getParentId()).tenantId(biteClaims.getTenantId()).operationAccountId(biteClaims.getAccountId()).build();
             dataRoomService.addFolder(dataRoom);
             return ReturnData.success();

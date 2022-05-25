@@ -20,6 +20,8 @@ public class AccountServiceImpl {
     @Autowired
     private TenantServiceImpl tenantService;
     @Autowired
+    private DataRoomServiceImpl dataRoomService;
+    @Autowired
     private WechatUtil wechatUtil;
     @Autowired
     private SmsUtil smsUtil;
@@ -80,6 +82,8 @@ public class AccountServiceImpl {
         }
         newAccount.setTenantId(tenantId);
         accountMapper.insert(newAccount);
+        // 初始化根目录
+        dataRoomService.initRootFolder(newAccount.getId(), tenantId);
         return newAccount;
     }
 

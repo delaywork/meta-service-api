@@ -40,8 +40,8 @@ public class DataRoom extends BaseModel {
     private String name;
 
     // 描述
-    @TableField(value = "note")
-    private String note;
+    @TableField(value = "comments")
+    private String comments;
 
     // 云
     @TableField(value = "cloud")

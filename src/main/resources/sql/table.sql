@@ -26,3 +26,22 @@ CREATE TABLE if not exists account
     constraint account
         primary key (id)
 );
+
+CREATE TABLE if not exists data_room
+(
+    id bigint not null,
+    parent_id bigint null comment '父节点 id',
+    type varchar(64) null comment '类型',
+    name varchar(255) null comment '名称',
+    comments varchar(2048) null comment '描述',
+    cloud varchar(255) null comment '云',
+    url varchar(255) null comment '文件地址（类型为"文件夹"则为空）',
+    tenant_id bigint null comment '租户id',
+    operation_account_id bigint null comment '操作人员id',
+    data_create_time timestamp null,
+    data_update_time timestamp null,
+    data_is_deleted tinyint default 0 null,
+    constraint account
+        primary key (id)
+);
+

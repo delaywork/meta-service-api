@@ -41,6 +41,19 @@ public class DataRoomServiceImpl {
     private final static long SEVEN_DAYS_AGO = 1000l * 60l * 60l * 24l * 7l;
 
     /**
+     * 初始化账号根目录
+     * */
+    public DataRoom initRootFolder(Long accountId, Long tenantId){
+        log.info("初始化账号根目录, accountId:{}", accountId);
+        if (ObjectUtils.isEmpty(accountId)){
+            throw new FastRunTimeException(ErrorEnum.参数不正确);
+        }
+        DataRoom dataRoom = DataRoom.builder().name(ROOT).operationAccountId(accountId).type(DataRoomTypeEnum.FOLDER).tenantId(tenantId).id(accountId).build();
+        dataRoomMapper.insert(dataRoom);
+        return dataRoom;
+    }
+
+    /**
      * 查询文件（内部调用）
      * */
     public DataRoom getFileInternal(Long fileId){
@@ -93,7 +106,7 @@ public class DataRoomServiceImpl {
     public void updateFile(MultipartFile file, Long accountId, Long fileId, Long tenantId){
         DataRoom dataRoom = this.getFile(fileId, accountId, tenantId);
         // 将文件移动到 VersionHistory
-        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).note(dataRoom.getNote())
+        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).note(dataRoom.getComments())
                 .operationAccountId(accountId).name(dataRoom.getName()).type(dataRoom.getType()).url(dataRoom.getUrl()).cloud(dataRoom.getCloud()).build();
         versionHistoryService.add(versionHistory);
         // 获取文件名
