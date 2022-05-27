@@ -32,7 +32,7 @@ public class SecurityController {
         }
     }
 
-    @ApiOperation("发送验证码")
+    @ApiOperation("验证")
     @PostMapping("/security/{type}")
     public ReturnData<Account> security(@RequestHeader("authorization") String token, @RequestBody SecurityRequest request){
         try{

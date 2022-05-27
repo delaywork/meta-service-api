@@ -2,9 +2,9 @@
 
 ## 立即开始
 
-1、请先参阅 **环境变量及说明** 配置好环境变量。
+1、请先参阅 **[环境变量及说明](https://github.com/delaywork/meta-service-api#%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%8F%8A%E8%AF%B4%E6%98%8E)** 配置好环境变量。
 
-2、初始化数据库，执行 *resource/sql* 文件夹下的 SQL 脚本。
+2、初始化数据库，执行 **resource/sql** 文件夹下的 SQL 脚本。
 
 3、启动项目。
 
@@ -32,7 +32,9 @@ REDIS_SSL=false
 
 修改配置文件中的 Mysql 相关配置。
 ```properties
-MYSQL_HOST=127.0.0.1:3306
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=meta
 MYSQL_USERNAME=root
 MYSQL_PASSWORD=martin
 MYSQL_SSL=false
@@ -50,7 +52,7 @@ META_CLIENT_SECRET=$2a$10$YMIshlb2tH0HkHliyl84tO5eRzCeMiTI59Tqed4OpOw.HjkGZvE7i
 
 ### 如何添加免鉴权接口？
 
-默认所有接口都需要进行 token 验证，不需要验证的接口可以添加到下面的白名单配置中。
+默认所有接口都需要进行 token 鉴权，不需要鉴权的接口请添加到白名单配置中。
 ```properties
 WHITE_LIST_URL=/oauth/token,/token
 ```

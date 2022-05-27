@@ -14,15 +14,17 @@ import java.util.List;
 @NoArgsConstructor
 public class UserOauthVo implements UserDetails {
 
-    private Long userId;
     private String username;
     private String password;
     private Boolean enabled;
+    private Long accountId;
+    private String accountName;
 
     private Collection<SimpleGrantedAuthority> authorities;
 
-    public UserOauthVo(Long userId, String username, String password, Boolean enabled,Collection<SimpleGrantedAuthority> authorities) {
-        this.setUserId(userId);
+    public UserOauthVo(Long accountId, String accountName, String username, String password, Boolean enabled,Collection<SimpleGrantedAuthority> authorities) {
+        this.setAccountId(accountId);
+        this.setAccountName(accountName);
         this.setUsername(username);
         this.setPassword(password);
         this.setEnabled(true);

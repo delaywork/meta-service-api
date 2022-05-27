@@ -67,6 +67,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Resource
     private OauthWebResponseExceptionTranslator oauthWebResponseExceptionTranslator;
 
+    @Resource
+    private MetaPasswordEncoder metaPasswordEncoder;
+
     // 配置授权模式
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
@@ -120,7 +123,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
             .tokenGranter(this.getDefaultTokenGranters(endpoints))// 获取所有认证类型
             .tokenStore(tokenStore())
             .exceptionTranslator(oauthWebResponseExceptionTranslator)// 认证异常自定义处理
-            .reuseRefreshTokens(true)// refresh token：重复使用(true：不生成新的 refresh token)、非重复使用(false：生成新的 refresh token)，默认为true
+            .reuseRefreshTokens(false)// refresh token：重复使用(true：不生成新的 refresh token)、非重复使用(false：生成新的 refresh token)，默认为true
             .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);// 允许 GET、POST 请求获取 token，即访问端点：oauth/token
     }
 
@@ -132,8 +135,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         return (accessToken, authentication) -> {
             Map<String, Object> additionalInfo = new HashMap();
             UserOauthVo userOauthVo = (UserOauthVo) authentication.getUserAuthentication().getPrincipal();
-            additionalInfo.put("userId", userOauthVo.getUserId());
-            additionalInfo.put("username", userOauthVo.getUsername());
+            additionalInfo.put("accountId", userOauthVo.getAccountId());
+            additionalInfo.put("accountName", userOauthVo.getAccountName());
             ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
             return accessToken;
         };

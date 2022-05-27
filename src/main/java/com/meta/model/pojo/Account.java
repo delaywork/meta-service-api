@@ -55,6 +55,18 @@ public class Account extends BaseModel {
     @TableField(value = "avatar_url")
     private String avatarUrl;
 
+    //时区配置
+    @TableField(value = "time_zone")
+    private Integer timeZone;
+
+    //时区名称
+    @TableField(value = "time_zone_text")
+    private String timeZoneText;
+
+    //语言配置
+    @TableField(value = "language_type")
+    private String languageType;
+
     // 租户id
     @TableField(value = "tenant_id")
     @JsonFormat(shape = JsonFormat.Shape.STRING)

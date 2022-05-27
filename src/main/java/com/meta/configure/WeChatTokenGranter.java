@@ -51,8 +51,8 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
         log.info("微信认证 jsCode:{}", jsCode);
         WechatUtilLoginResponse wechatResponse = wechatUtil.login(jsCode);
 //        WechatUtilLoginResponse wechatResponse = new WechatUtilLoginResponse();
-//        wechatResponse.setOpenid("2");
-//        wechatResponse.setUnionid("2");
+//        wechatResponse.setOpenid("1");
+//        wechatResponse.setUnionid("1");
         if (ObjectUtils.isEmpty(wechatResponse)){
             log.info("微信认证失败 jsCode:{}", jsCode);
             throw new FastRunTimeException(ErrorEnum.认证异常);
@@ -73,7 +73,7 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
             log.info("微信关联账号未完成手机因子绑定，accountId:{}", account.getId());
             authorities.add(new SimpleGrantedAuthority(AuthorityEnum.INBOX.getValue()));
         }
-        UserOauthVo user = new UserOauthVo(account.getId(), account.getName(), account.getPassword(), true, authorities);
+        UserOauthVo user = new UserOauthVo(account.getId(), account.getName(), account.getId().toString(), account.getPassword(), true, authorities);
 
         Authentication userAuth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         ((AbstractAuthenticationToken) userAuth).setDetails(parameters);

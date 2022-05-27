@@ -1,7 +1,10 @@
 package com.meta.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.meta.mapper.AccountMapper;
+import com.meta.model.ErrorEnum;
+import com.meta.model.FastRunTimeException;
 import com.meta.model.pojo.Account;
 import com.meta.model.request.*;
 import com.meta.utils.*;
@@ -85,6 +88,40 @@ public class AccountServiceImpl {
         // 初始化根目录
         dataRoomService.initRootFolder(newAccount.getId(), tenantId);
         return newAccount;
+    }
+
+    /**
+     * 修改账户
+     * */
+    public void updateAccount(UpdateAccountRequest request){
+        if (ObjectUtils.isEmpty(request.getAccountId())){
+            throw new FastRunTimeException(ErrorEnum.帐户不存在);
+        }
+        log.info("修改账户信息， accountId:{}", request.getAccountId());
+        UpdateWrapper<Account> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().eq(Account::getId, request.getAccountId());
+        // 设置需要修改的信息
+        if (ObjectUtils.isNotEmpty(request.getSetName())){
+            updateWrapper.lambda().set(Account::getName, request.getSetName());
+        }
+        if (ObjectUtils.isNotEmpty(request.getSetPassword())){
+            BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
+            String password = bcryptPasswordEncoder.encode(request.getSetPassword());
+            updateWrapper.lambda().set(Account::getPassword, password);
+        }
+        if (ObjectUtils.isNotEmpty(request.getSetAvatarUrl())){
+            updateWrapper.lambda().set(Account::getAvatarUrl, request.getSetAvatarUrl());
+        }
+        if (ObjectUtils.isNotEmpty(request.getSetTimeZone())){
+            updateWrapper.lambda().set(Account::getTimeZone, request.getSetTimeZone());
+        }
+        if (ObjectUtils.isNotEmpty(request.getSetTimeZoneText())){
+            updateWrapper.lambda().set(Account::getTimeZoneText, request.getSetTimeZoneText());
+        }
+        if (ObjectUtils.isNotEmpty(request.getSetLanguageType())){
+            updateWrapper.lambda().set(Account::getLanguageType, request.getSetLanguageType());
+        }
+        accountMapper.update(Account.builder().build(), updateWrapper);
     }
 
 }
