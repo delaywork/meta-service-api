@@ -1,10 +1,7 @@
 package com.meta.utils;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
-import com.meta.model.WechatUtilLoginResponse;
 import com.meta.model.enums.VerificationScenarioEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,15 +12,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class SmsUtil {
 
     @Value("${SMS_API_KEY:}")
     private String SMS_API_KEY;
-    @Value("${BINDING_SMS_TID:4889388}")
+    @Value("${BINDING_SMS_TID:}")
     private String BINDING_SMS_TID;
 
     @Autowired

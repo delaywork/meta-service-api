@@ -3,6 +3,7 @@ package com.meta.controller;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.MetaClaims;
 import com.meta.model.ReturnData;
+import com.meta.model.enums.VerificationMethodEnum;
 import com.meta.model.pojo.Account;
 import com.meta.model.request.AddVerificationRequest;
 import com.meta.model.request.SecurityRequest;
@@ -34,10 +35,11 @@ public class SecurityController {
 
     @ApiOperation("验证")
     @PostMapping("/security/{type}")
-    public ReturnData<Account> security(@RequestHeader("authorization") String token, @RequestBody SecurityRequest request){
+    public ReturnData<Account> security(@RequestHeader("authorization") String token, @PathVariable("type") VerificationMethodEnum type, @RequestBody SecurityRequest request){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             request.setAccountId(claims.getAccountId());
+            request.setMethod(type);
             securityService.security(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
