@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum MetaTermsTypeEnum {
-    MEMBERS("MEMBERS","成员"),
+    ABOUT("ABOUT","关于"),
+    TERMS_CONDITIONS("TERMS_CONDITIONS","条款"),
+    POLICY("POLICY","政策"),
     ;
 
     @EnumValue

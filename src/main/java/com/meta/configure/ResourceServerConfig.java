@@ -38,9 +38,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         List<String> urls = urlWhiteListUtil.urlWhiteList();
         http.authorizeRequests()
                 .antMatchers(urls.toArray(new String[]{})).permitAll()
-//                .antMatchers("/admin/**").hasRole("admin")
-//                .antMatchers("/user/**").hasAuthority("INBOX")
-//                .antMatchers("/user").hasAnyAuthority(AuthorityEnum.INBOX.getValue(), AuthorityEnum.ALL.getValue())
+//                .antMatchers("/user","/meta").hasAnyAuthority(AuthorityEnum.INBOX.getValue(), AuthorityEnum.ALL.getValue())
+                .antMatchers("/**").hasAuthority(AuthorityEnum.ALL.getValue())
                 .anyRequest().authenticated().and().httpBasic().and().csrf().disable();
         http.addFilterBefore(tokenFilter, BasicAuthenticationFilter.class);
     }
