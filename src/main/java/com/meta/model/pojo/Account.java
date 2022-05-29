@@ -6,9 +6,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
+import com.meta.model.enums.AccountSexEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
+
+import java.sql.Timestamp;
 
 /**
  * @Author Martin
@@ -34,6 +37,14 @@ public class Account extends BaseModel {
     // 用户名
     @TableField(value = "name")
     private String name;
+
+    // 性别
+    @TableField(value = "sex")
+    private AccountSexEnum sex;
+
+    // 生日
+    @TableField(value = "birthday")
+    private Timestamp birthday;
 
     // 邮箱
     @TableField(value = "email")

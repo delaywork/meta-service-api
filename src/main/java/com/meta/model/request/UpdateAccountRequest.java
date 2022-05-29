@@ -1,9 +1,13 @@
 package com.meta.model.request;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.meta.model.enums.AccountSexEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 import org.springframework.web.bind.annotation.RequestHeader;
+
+import java.sql.Timestamp;
 
 @Data
 @Builder
@@ -14,6 +18,12 @@ public class UpdateAccountRequest {
 
     // 用户名
     private String setName;
+
+    // 性别
+    private AccountSexEnum setSex;
+
+    // 生日
+    private Timestamp setBirthday;
 
     // 用户密码
     private String setPassword;

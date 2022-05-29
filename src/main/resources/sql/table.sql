@@ -14,6 +14,8 @@ CREATE TABLE if not exists account
     openid varchar(64) null comment '微信 openid',
     unionid varchar(64) null comment '微信 unionid',
     name varchar(255) null comment '账户名称',
+    sex varchar(64) null comment  '性别',
+    birthday timestamp null comment '生日',
     email varchar(255) null comment '邮箱',
     area_code varchar(128) null comment '手机前缀',
     phone varchar(128) null comment '手机',

@@ -121,6 +121,12 @@ public class AccountServiceImpl {
         if (ObjectUtils.isNotEmpty(request.getSetLanguageType())){
             updateWrapper.lambda().set(Account::getLanguageType, request.getSetLanguageType());
         }
+        if (ObjectUtils.isNotEmpty(request.getSetSex())){
+            updateWrapper.lambda().set(Account::getSex, request.getSetSex());
+        }
+        if (ObjectUtils.isNotEmpty(request.getSetBirthday())){
+            updateWrapper.lambda().set(Account::getBirthday, request.getSetBirthday());
+        }
         accountMapper.update(Account.builder().build(), updateWrapper);
     }
 
