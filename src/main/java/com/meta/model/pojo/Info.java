@@ -15,8 +15,8 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-@TableName(value="meta")
-public class Meta extends BaseModel {
+@TableName(value="info")
+public class Info extends BaseModel {
 
     // 主键ID 使用雪花算法生成
     @TableId(value = "id",type = IdType.NONE)
@@ -36,6 +36,6 @@ public class Meta extends BaseModel {
     private String policy;
 
     @Tolerate
-    public Meta(){}
+    public Info(){}
 
 }

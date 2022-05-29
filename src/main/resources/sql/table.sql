@@ -64,16 +64,16 @@ CREATE TABLE if not exists data_room
         primary key (id)
 );
 
-CREATE TABLE if not exists meta
+CREATE TABLE if not exists info
 (
     id bigint not null,
-    about text null comment '关于 meta',
+    about text null comment '关于 info',
     terms_conditions text null comment '条款',
     policy text null comment '策略',
     data_create_time timestamp null,
     data_update_time timestamp null,
     data_is_deleted tinyint default 0 null,
-    constraint meta
+    constraint info
         primary key (id)
 );
 

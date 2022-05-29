@@ -8,7 +8,7 @@ import lombok.experimental.Tolerate;
 
 @Data
 @Builder
-public class GetMetaResponse {
+public class GetInfoResponse {
 
     // 关于
     private String about;
@@ -20,5 +20,5 @@ public class GetMetaResponse {
     private String policy;
 
     @Tolerate
-    public GetMetaResponse(){}
+    public GetInfoResponse(){}
 }

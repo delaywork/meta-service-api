@@ -104,28 +104,28 @@ public class AccountServiceImpl {
         if (ObjectUtils.isNotEmpty(request.getSetName())){
             updateWrapper.lambda().set(Account::getName, request.getSetName());
         }
-        if (ObjectUtils.isNotEmpty(request.getSetPassword())){
+        if (ObjectUtils.isNotEmpty(request.getPassword())){
             BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
-            String password = bcryptPasswordEncoder.encode(request.getSetPassword());
+            String password = bcryptPasswordEncoder.encode(request.getPassword());
             updateWrapper.lambda().set(Account::getPassword, password);
         }
-        if (ObjectUtils.isNotEmpty(request.getSetAvatarUrl())){
-            updateWrapper.lambda().set(Account::getAvatarUrl, request.getSetAvatarUrl());
+        if (ObjectUtils.isNotEmpty(request.getAvatarUrl())){
+            updateWrapper.lambda().set(Account::getAvatarUrl, request.getAvatarUrl());
         }
-        if (ObjectUtils.isNotEmpty(request.getSetTimeZone())){
-            updateWrapper.lambda().set(Account::getTimeZone, request.getSetTimeZone());
+        if (ObjectUtils.isNotEmpty(request.getTimeZone())){
+            updateWrapper.lambda().set(Account::getTimeZone, request.getTimeZone());
         }
-        if (ObjectUtils.isNotEmpty(request.getSetTimeZoneText())){
-            updateWrapper.lambda().set(Account::getTimeZoneText, request.getSetTimeZoneText());
+        if (ObjectUtils.isNotEmpty(request.getTimeZoneText())){
+            updateWrapper.lambda().set(Account::getTimeZoneText, request.getTimeZoneText());
         }
-        if (ObjectUtils.isNotEmpty(request.getSetLanguageType())){
-            updateWrapper.lambda().set(Account::getLanguageType, request.getSetLanguageType());
+        if (ObjectUtils.isNotEmpty(request.getLanguageType())){
+            updateWrapper.lambda().set(Account::getLanguageType, request.getLanguageType());
         }
-        if (ObjectUtils.isNotEmpty(request.getSetSex())){
-            updateWrapper.lambda().set(Account::getSex, request.getSetSex());
+        if (ObjectUtils.isNotEmpty(request.getSex())){
+            updateWrapper.lambda().set(Account::getSex, request.getSex());
         }
-        if (ObjectUtils.isNotEmpty(request.getSetBirthday())){
-            updateWrapper.lambda().set(Account::getBirthday, request.getSetBirthday());
+        if (ObjectUtils.isNotEmpty(request.getBirthday())){
+            updateWrapper.lambda().set(Account::getBirthday, request.getBirthday());
         }
         accountMapper.update(Account.builder().build(), updateWrapper);
     }

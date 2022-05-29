@@ -20,25 +20,25 @@ public class UpdateAccountRequest {
     private String setName;
 
     // 性别
-    private AccountSexEnum setSex;
+    private AccountSexEnum sex;
 
     // 生日
-    private Timestamp setBirthday;
+    private Timestamp birthday;
 
     // 用户密码
-    private String setPassword;
+    private String password;
 
     // 用户头像
-    private String setAvatarUrl;
+    private String avatarUrl;
 
     // 时区
-    private Integer setTimeZone;
+    private Integer timeZone;
 
     // 时区描述
-    private String setTimeZoneText;
+    private String timeZoneText;
 
     // 语言类型
-    private String setLanguageType;
+    private String languageType;
 
     @Tolerate
     public UpdateAccountRequest(){}
