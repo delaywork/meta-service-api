@@ -1,115 +1,106 @@
 # meta-service-api
 
-## 与第三方系统交互
+## 立即开始
 
-与第三方系统交互采用了 RSA 非对称加密算法，第三方系统需要维护下列密钥对。使用公钥加密请求数据，使用私钥解密响应数据。
+1、请先参阅 **[环境变量及说明](https://github.com/delaywork/meta-service-api#%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%8F%8A%E8%AF%B4%E6%98%8E)** 配置好环境变量。
 
-公钥：
+2、初始化数据库，执行 **resource/sql** 文件夹下的 SQL 脚本。
 
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDve3MmlVMKTbXru0DUPpfDNhR2kATTPuDmFJTb3DbGIthLcmS8pw+oRk8JdjW/wkDYxOp5n/4Ek7qMcpyr+JWLPG2ydgfFWLVNXo/YrKfd7SFbOeUV8kOtEQYygBNx2KJQMcfGpzTN0F5tBQCPjRCyLTwDRjgKPrTJ/BOkNyuZrwIDAQAB
+3、启动项目。
 
-私钥：
 
-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMaxGDSI76e6//bl+pkj1ULJn24lX+evtdM+x7+qeqFsEDQ7yvT8jSH3YFw/LgUpsswyWCkTP6QxM9CoiNE33YrYAuEkpckHOMR4U935BwGaXbPiRwEQrB7rOxZSCCL5ks0P/fCEnPXQXNYntelF6levIBjUkQeSQjxtEYXzWlQPAgMBAAECgYEAgRtoKBLm7y2iz3MnAEV5ePl8gF0G0YyqcIa10wRaxPNsIBTOT5yftHeDBM4FAFPVG7yG7sHUM8PI8Ifix1guurh0khDCRk1jHB/COFJP09rWHRkuO5+f4XL+dig51f+dlp9il0GnbNt3mfXeEn4axtGdw0KcgxWN7CT+tYfgFbECQQD1feck24V/iU1upLFgqkwjjTKBn3oGK1mcR8k9K1sdrBvm5VKpzHRYi97zWXDeoJ0euyb4hZSsQh9X4R3OCrrJAkEAzzJbd79mj6RlDVx6vExL4tRUP1YuVIBqZasdMJBAvFM/EwbRlpqUVrtxHv8B3Iv88NPQ0vZz1G9N4noWMYEsFwJADaVpAuB9BEDioALhpUjyIIvJwfDWfJ9OROSsqAzP7M9TYbtfo/ashPuJcieHoah1825d1TS/te+bBGyMFpb8GQJAUBmvssOT6sQrLNcru8/jJnXfe/zdPF3IxDU6u6OI40VrhPeF3yszXbRpLwp2tcSIrLG2cVhFv0KoYX3BRrIhUQJBANJgsZ9TOALRy2yjo+OjXRUlIolOj7jrB1smduEBkJWqm0zD+ZFblOQIsFnjolCvZq0eIdn+t6FkoH1DG5/acuQ=
+## 环境变量及说明
 
-### 自行生成密钥：
+### 如何设置项目端口号？
 
-如果需要替换加解密钥请自行生成，生成后需要同步替换 RSAUtil 中的公私钥。
-
-    注：需要生成两组 RSA 密钥对，其中"密钥对1"的公钥和"密钥对2"的私钥为一组用于第三方系统或本系统，
-       "密钥对1"的私钥和"密钥对2"的公钥为另一组。
-
-### 加解密示例：
-
-java:
-```
-public static void main(String[] args) {
-    // RSA
-    String PRIVATE_KEY1 = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMaxGDSI76e6//bl+pkj1ULJn24lX+evtdM+x7+qeqFsEDQ7yvT8jSH3YFw/LgUpsswyWCkTP6QxM9CoiNE33YrYAuEkpckHOMR4U935BwGaXbPiRwEQrB7rOxZSCCL5ks0P/fCEnPXQXNYntelF6levIBjUkQeSQjxtEYXzWlQPAgMBAAECgYEAgRtoKBLm7y2iz3MnAEV5ePl8gF0G0YyqcIa10wRaxPNsIBTOT5yftHeDBM4FAFPVG7yG7sHUM8PI8Ifix1guurh0khDCRk1jHB/COFJP09rWHRkuO5+f4XL+dig51f+dlp9il0GnbNt3mfXeEn4axtGdw0KcgxWN7CT+tYfgFbECQQD1feck24V/iU1upLFgqkwjjTKBn3oGK1mcR8k9K1sdrBvm5VKpzHRYi97zWXDeoJ0euyb4hZSsQh9X4R3OCrrJAkEAzzJbd79mj6RlDVx6vExL4tRUP1YuVIBqZasdMJBAvFM/EwbRlpqUVrtxHv8B3Iv88NPQ0vZz1G9N4noWMYEsFwJADaVpAuB9BEDioALhpUjyIIvJwfDWfJ9OROSsqAzP7M9TYbtfo/ashPuJcieHoah1825d1TS/te+bBGyMFpb8GQJAUBmvssOT6sQrLNcru8/jJnXfe/zdPF3IxDU6u6OI40VrhPeF3yszXbRpLwp2tcSIrLG2cVhFv0KoYX3BRrIhUQJBANJgsZ9TOALRy2yjo+OjXRUlIolOj7jrB1smduEBkJWqm0zD+ZFblOQIsFnjolCvZq0eIdn+t6FkoH1DG5/acuQ=";
-    String PUBLIC_KEY1 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDve3MmlVMKTbXru0DUPpfDNhR2kATTPuDmFJTb3DbGIthLcmS8pw+oRk8JdjW/wkDYxOp5n/4Ek7qMcpyr+JWLPG2ydgfFWLVNXo/YrKfd7SFbOeUV8kOtEQYygBNx2KJQMcfGpzTN0F5tBQCPjRCyLTwDRjgKPrTJ/BOkNyuZrwIDAQAB";
-    RSA rsa1 = SecureUtil.rsa(PRIVATE_KEY1, PUBLIC_KEY1);
-    // 字符串测试（Util加密，第三方解密）
-    String string = "test";
-    String stringUtilEncrypt = RSAUtil.encrypt(string);
-    String stringOtherDecrypt = JSONObject.parseObject(rsa1.decryptStr(stringUtilEncrypt, KeyType.PrivateKey), String.class);
-    // 字符串测试（第三方加密，Util解密）
-    String stringOtherEncrypt = rsa1.encryptBase64(JSONObject.toJSONString(string), KeyType.PublicKey);
-    String stringUtilDecrypt = RSAUtil.decrypt(stringOtherEncrypt, String.class);
-    // JSON测试（Util加密，第三方解密）
-    JSONObject jsonObject = new JSONObject();
-    jsonObject.put("key","1");
-    jsonObject.put("value","2");
-    String jsonUtilEncrypt = RSAUtil.encrypt(jsonObject);
-    JSONObject jsonOtherDecrypt = JSONObject.parseObject(rsa1.decryptStr(jsonUtilEncrypt, KeyType.PrivateKey), JSONObject.class);
-    // JSON测试（第三方加密，Util解密）
-    String jsonOtherEncrypt = rsa1.encryptBase64(JSONObject.toJSONString(jsonObject), KeyType.PublicKey);
-    JSONObject jsonUtilDecrypt = RSAUtil.decrypt(jsonOtherEncrypt, JSONObject.class);
-}
+项目默认的端口号为 **8080** ，需要调整请修改配置文件中 **SERVER_PORT** 的值。
+```properties
+SERVER_PORT=8080
 ```
 
-## 接口返回说明
+### 如何设置 Redis 连接？
 
-接口返回示例：
-
-```
-{
-  "code": "状态码",
-  "data": {},
-  "msg": "解释"
-}
-```
-
-接口状态码“C-00000”表示请求成功，非“C-00000”表示业务出现异常，状态码及对应的解释如下：
-
-|状态码|解释|
-|---|---|
-| C-00000 | ok |
-| C-00001 | 网络异常 |
-| C-00002 | Token过期或已失效 |
-| C-00003 | 没有文件操作权限 |
-| C-00004 | 不是文件夹类型 |
-| C-00005 | 文件已删除 |
-| C-00006 | 文件不存在 |
-| C-00007 | 文件不存在有效地址 |
-| C-00008 | 下载失败 |
-| C-00009 | 登录失败 |
-| C-00010 | code无效 |
-| C-00011 | 登录频率限制 |
-| C-00012 | 高风险用户 |
-| C-00013 | 添加水印失败 |
-| C-00014 | 原有父级文件夹不存在 |
-| C-00015 | 根目录不能被删除 |
-| C-00016 | 不能使用根目录命名 |
-| C-00017 | 该分享已被禁止其他用户访问 |
-| C-00018 | 该分享已被禁止其他用户分享 |
-| B-00001 | 参数不正确 |
-| O-00001 | 第三方调用失败 |
-
-## 环境变量说明
-
-```
-# 服务端口号
-SERVER_PORT=7050
-
-# redis 配置
-REDIS_HOST=redis-master.system-stream-dev1.svc.cluster.local
+修改配置文件中的 Redis 相关配置。
+```properties
+REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
-REDIS_PASSWORD=bite
-
-# 数据库配置
-DATASOURCE_DBHOST=mysql.system-stream-dev1.svc.cluster.local:3306
-DATASOURCE_USERNAME=root
-DATASOURCE_PASSWORD=bite
-
-# 七牛云配置
-qiu.accessKey=
-qiu.secretKey=
-qiu.bucket.name=
-qiu.domain=
-
-# 小程序配置
-wechat.appid=
-wechat.secret=
+REDIS_PASSWORD=martin
+REDIS_SSL=false
 ```
+
+### 如何设置 Mysql 连接？
+
+修改配置文件中的 Mysql 相关配置。
+```properties
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=meta
+MYSQL_USERNAME=root
+MYSQL_PASSWORD=martin
+MYSQL_SSL=false
+```
+
+### 如何设置客户端的 clientId、clientSecret？
+
+项目自带的认证端仅为 Meta 提供认证服务，客户端仅有 Meta，默认提供一组 clientId、clientSecret。
+
+如果你仅需修改 clientId、clientSecret 配置，请修改以下配置。
+```properties
+META_CLIENT_ID=meta
+META_CLIENT_SECRET=$2a$10$YMIshlb2tH0HkHliyl84tO5eRzCeMiTI59Tqed4OpOw.HjkGZvE7i
+```
+
+### 如何添加免鉴权接口？
+
+默认所有接口都需要进行 token 鉴权，不需要鉴权的接口请添加到白名单配置中。
+```properties
+WHITE_LIST_URL=/oauth/token,/token
+```
+
+### 如何配置 token 失效时间及加密密钥？
+
+默认使用 **HMAC-SHA-256** 随机生成的密钥，需要调整请修改配置文件中 **JWT_SIGNING_KEY** 的值。
+
+默认的 access token 过期时间为1天，refresh token 过期时间为15天。
+```properties
+JWT_SIGNING_KEY=pbiRBFxfdeDVm4VDVrTy72v9DC+2L5vbclMNM2iO2SE=
+ACCESS_TOKEN_VALIDITY_SECONDS=86400
+REFRESH_TOKEN_VALIDITY_SECONDS=1296000
+```
+使用非对称加密的方式生成 token 需要改写以下代码：
+
+默认加密方式
+```
+jwtAccessTokenConverter.setSigningKey(jwt_signing_key);
+```
+非对称加密方式
+```
+tAccessTokenConverter.setKeyPair(keyPair);
+```
+
+### 如何修改小程序配置？
+
+项目提供了微信小程序认证方式，修改以下配置以支持小程序认证。
+```properties
+WECHAT_APPID=
+WECHAT_SECRET=
+```
+
+### 如何发送短信？
+
+项目默认对接的 **云片( https://www.yunpian.com)** 短信发送平台，如果使用 **云片** 只需要修改 **SMS_API_KEY** 配置及短信模版配置。
+```properties
+SMS_API_KEY=
+BINDING_SMS_TID=
+```
+如果不使用 **云片**，需要修改 **SmsUtil** 中的相关代码。
+
+
+
+
+
+
+
+
 
 

@@ -1,11 +1,12 @@
-package com.meta.utils;
+package com.meta.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum RedisKeys {
-    TOKEN("token:","token"),
-    BINDING_PHONE_SMS_CODE("BINDING_PHONE_SMS_CODE:","绑定手机号"),
+public enum AccountSexEnum {
+    MALE("MALE","男"),
+    WOMAN("WOMAN","女"),
+    NEUTRAL("NEUTRAL","中性"),
     ;
 
     @EnumValue
@@ -13,7 +14,7 @@ public enum RedisKeys {
 
     private String describe;
 
-    RedisKeys(String value, String describe){
+    AccountSexEnum(String value, String describe){
         this.value = value;
         this.describe = describe;
     }
