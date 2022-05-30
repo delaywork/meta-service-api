@@ -34,7 +34,7 @@ public class SecurityController {
     }
 
     @ApiOperation("验证")
-    @PostMapping("/security/{type}")
+    @PatchMapping("/security/{type}")
     public ReturnData<Account> security(@RequestHeader("authorization") String token, @PathVariable("type") VerificationMethodEnum type, @RequestBody SecurityRequest request){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);

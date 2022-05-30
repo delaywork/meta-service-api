@@ -50,7 +50,7 @@ CREATE TABLE if not exists data_room
 (
     id bigint not null,
     parent_id bigint null comment '父节点 id',
-    type varchar(64) null comment '类型',
+    type varchar(64) not null comment '类型',
     name varchar(255) null comment '名称',
     comments varchar(2048) null comment '描述',
     cloud varchar(255) null comment '云',
@@ -67,9 +67,9 @@ CREATE TABLE if not exists data_room
 CREATE TABLE if not exists info
 (
     id bigint not null,
-    about text null comment '关于 info',
-    terms_conditions text null comment '条款',
-    policy text null comment '策略',
+    type varchar(64) not null comment '类型',
+    context text null comment '内容',
+    enabled varchar(128) not null comment '是否使用',
     data_create_time timestamp null,
     data_update_time timestamp null,
     data_is_deleted tinyint default 0 null,

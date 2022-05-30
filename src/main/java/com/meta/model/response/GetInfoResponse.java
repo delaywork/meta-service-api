@@ -5,19 +5,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 
+import java.util.List;
+
 
 @Data
 @Builder
 public class GetInfoResponse {
 
     // 关于
-    private String about;
+    private List<String> abouts;
 
     // 条款
-    private String termsAndConditions;
+    private List<String> termsAndConditions;
 
     // 策略
-    private String policy;
+    private List<String> policies;
 
     @Tolerate
     public GetInfoResponse(){}
