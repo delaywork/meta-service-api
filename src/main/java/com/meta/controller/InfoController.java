@@ -2,7 +2,7 @@ package com.meta.controller;
 
 import com.meta.model.FastRunTimeException;
 import com.meta.model.ReturnData;
-import com.meta.model.enums.InfoTermsTypeEnum;
+import com.meta.model.enums.InfoTypeEnum;
 import com.meta.model.pojo.Account;
 import com.meta.model.request.GetInfoTermsRequest;
 import com.meta.service.InfoServiceImpl;
@@ -24,7 +24,7 @@ public class InfoController {
 
     @ApiOperation("查询 meta 信息")
     @GetMapping("/info")
-    public ReturnData<Account> getAccountById(@RequestHeader("authorization") String token,  @RequestParam(value = "type", required = false) InfoTermsTypeEnum type){
+    public ReturnData<Account> getAccountById(@RequestHeader("authorization") String token,  @RequestParam(value = "type", required = false) InfoTypeEnum type){
         try{
             GetInfoTermsRequest request = GetInfoTermsRequest.builder().type(type).build();
             return ReturnData.success(infoService.getMeta(request));

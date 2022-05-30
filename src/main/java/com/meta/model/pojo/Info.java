@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
+import com.meta.model.enums.InfoEnabledEnum;
+import com.meta.model.enums.InfoTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -23,17 +25,17 @@ public class Info extends BaseModel {
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
-    // 关于
-    @TableField(value = "about")
-    private String about;
+    // 内容
+    @TableField(value = "context")
+    private String context;
 
-    // 条款
-    @TableField(value = "terms_conditions")
-    private String termsAndConditions;
+    // 类型
+    @TableField(value = "type")
+    private InfoTypeEnum type;
 
-    // 策略
-    @TableField(value = "policy")
-    private String policy;
+    // 是否使用
+    @TableField(value = "enabled")
+    private InfoEnabledEnum enabled;
 
     @Tolerate
     public Info(){}

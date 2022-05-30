@@ -1,6 +1,6 @@
 package com.meta.model.request;
 
-import com.meta.model.enums.InfoTermsTypeEnum;
+import com.meta.model.enums.InfoTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -9,7 +9,7 @@ import lombok.experimental.Tolerate;
 @Builder
 public class GetInfoTermsRequest {
 
-    private InfoTermsTypeEnum type;
+    private InfoTypeEnum type;
 
     @Tolerate
     public GetInfoTermsRequest(){}

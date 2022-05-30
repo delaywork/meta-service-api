@@ -12,6 +12,7 @@ import com.meta.utils.*;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -102,6 +103,23 @@ public class SecurityServiceImpl {
                 break;
             case EMAIL:
                 log.info("进行邮箱安全认证");
+                break;
+            case PASSWORD:
+                log.info("进行密码安全认证");
+                if (ObjectUtils.isEmpty(request.getPassword())){
+                    throw new FastRunTimeException(ErrorEnum.参数不正确);
+                }
+                BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
+                // 与旧密码比对
+                boolean matches = bcryptPasswordEncoder.matches(request.getPassword(), account.getPassword());
+                if (matches){
+                    log.info("新旧密码相同");
+                }
+                UpdateWrapper<Account> passwordWrapper = new UpdateWrapper<>();
+                passwordWrapper.lambda().eq(Account::getId, request.getAccountId()).eq(Account::getDataIsDeleted, false);
+                String password = bcryptPasswordEncoder.encode(request.getPassword());
+                passwordWrapper.lambda().set(Account::getPassword, password);
+                accountMapper.update(Account.builder().build(), passwordWrapper);
                 break;
         }
     }

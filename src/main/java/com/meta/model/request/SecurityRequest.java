@@ -20,6 +20,8 @@ public class SecurityRequest {
 
     private String code;
 
+    private String password;
+
     private Long accountId;
 
     @Tolerate

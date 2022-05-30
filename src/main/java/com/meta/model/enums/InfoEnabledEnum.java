@@ -3,10 +3,9 @@ package com.meta.model.enums;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum VerificationMethodEnum {
-    PHONE("PHONE","手机"),
-    EMAIL("EMAIL","邮箱"),
-    PASSWORD("PASSWORD","密码"),
+public enum InfoEnabledEnum {
+    ENABLE("ENABLE","使用"),
+    UNABLE("UNABLE","不使用"),
     ;
 
     @EnumValue
@@ -14,7 +13,7 @@ public enum VerificationMethodEnum {
 
     private String describe;
 
-    VerificationMethodEnum(String value, String describe){
+    InfoEnabledEnum(String value, String describe){
         this.value = value;
         this.describe = describe;
     }
