@@ -24,7 +24,7 @@ public class InfoController {
 
     @ApiOperation("查询 meta 信息")
     @GetMapping("/info")
-    public ReturnData<Account> getAccountById(@RequestHeader("authorization") String token,  @RequestParam(value = "type", required = false) InfoTypeEnum type){
+    public ReturnData<Account> getAccountById(@RequestParam(value = "type", required = false) InfoTypeEnum type){
         try{
             GetInfoTermsRequest request = GetInfoTermsRequest.builder().type(type).build();
             return ReturnData.success(infoService.getMeta(request));
