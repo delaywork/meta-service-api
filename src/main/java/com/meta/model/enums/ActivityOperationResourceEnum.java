@@ -3,9 +3,10 @@ package com.meta.model.enums;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum AccountAuthorizationTypeEnum {
-    TERMS_CONDITIONS("TERMS_CONDITIONS","条款"),
-    WECHAT("WECHAT","微信"),
+public enum ActivityOperationResourceEnum {
+    ACCOUNT("ACCOUNT","账号"),
+    DOCUMENT("DOCUMENT","文件"),
+    OPPORTUNITY("OPPORTUNITY","分享"),
     ;
 
     @EnumValue
@@ -13,7 +14,7 @@ public enum AccountAuthorizationTypeEnum {
 
     private String describe;
 
-    AccountAuthorizationTypeEnum(String value, String describe){
+    ActivityOperationResourceEnum(String value, String describe){
         this.value = value;
         this.describe = describe;
     }

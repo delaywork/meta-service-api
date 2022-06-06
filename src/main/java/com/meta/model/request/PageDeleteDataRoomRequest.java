@@ -1,7 +1,7 @@
 package com.meta.model.request;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.meta.model.pojo.DataRoom;
+import com.meta.model.pojo.Document;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -14,7 +14,7 @@ import lombok.experimental.Tolerate;
 @Builder
 public class PageDeleteDataRoomRequest {
 
-    private Page<DataRoom> page;
+    private Page<Document> page;
 
     @Tolerate
     public PageDeleteDataRoomRequest(){}

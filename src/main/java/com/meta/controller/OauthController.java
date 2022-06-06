@@ -45,6 +45,7 @@ public class OauthController {
     public ReturnData token(@RequestHeader(value = "refresh_token", required = false) String refreshToken, @RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam(value = "jsCode", required = false) String jsCode,
                             @RequestParam(value = "userName", required = false) String userName, @RequestParam(value = "avatarUrl", required = false) String avatarUrl,
                             @RequestParam(value = "password", required = false) String password) throws HttpRequestMethodNotSupportedException {
+        log.info("获取 token，authType:{}", authType.getOauthValue());
         // 构造一个被认证的客户端
         User clientUser = new User(meta_client_id, meta_client_secret, new ArrayList<>());
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(clientUser, null, new ArrayList<>());
@@ -67,15 +68,6 @@ public class OauthController {
         }
     }
 
-    public static void main(String[] args) {
-        String pass = "meta";
-        BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
-        String hashPass = bcryptPasswordEncoder.encode(pass);
-        System.out.println(hashPass);
-
-        boolean f = bcryptPasswordEncoder.matches("123","$2a$10$RMuFXGQ5AtH4wOvkUqyvuecpqUSeoxZYqilXzbz50dceRsga.WYiq");
-        System.out.println(f);
-    }
 
 }
 

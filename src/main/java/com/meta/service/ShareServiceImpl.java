@@ -6,7 +6,7 @@ import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.enums.ShareSourceTypeEnum;
 import com.meta.model.pojo.Account;
-import com.meta.model.pojo.DataRoom;
+import com.meta.model.pojo.Document;
 import com.meta.model.pojo.Share;
 import com.meta.model.request.ShareFileRequest;
 import com.meta.utils.PdfUtil;
@@ -30,7 +30,7 @@ public class ShareServiceImpl {
     @Autowired
     private AccountServiceImpl accountService;
     @Autowired
-    private DataRoomServiceImpl dataRoomService;
+    private DocumentServiceImpl dataRoomService;
     @Autowired
     private QiuUtil qiuUtil;
 
@@ -48,7 +48,7 @@ public class ShareServiceImpl {
         switch (request.getSourceType()){
             case PDF:
                 // 查询文件
-                DataRoom file = dataRoomService.getFile(request.getSourceId(), accountId, tenantId);
+                Document file = dataRoomService.getFile(request.getSourceId(), accountId, tenantId);
                 // 补充 share 信息
                 share.setSourceId(file.getId());
                 share.setSourceType(ShareSourceTypeEnum.PDF);

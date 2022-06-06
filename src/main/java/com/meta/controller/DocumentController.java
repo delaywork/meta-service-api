@@ -1,54 +1,63 @@
 package com.meta.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.meta.model.BiteClaims;
-import com.meta.model.ErrorEnum;
-import com.meta.model.FastRunTimeException;
-import com.meta.model.ReturnData;
-import com.meta.model.pojo.DataRoom;
+import com.meta.model.*;
+import com.meta.model.pojo.Document;
 import com.meta.model.request.*;
-import com.meta.service.DataRoomServiceImpl;
+import com.meta.model.response.QueryDocumentsResponse;
+import com.meta.service.DocumentServiceImpl;
 import com.meta.utils.JWTUtil;
+import com.meta.utils.OauthJWTUtil;
+import com.meta.utils.ParamsUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Api(value = "Data Room 文件/文件夹", tags = {"Data Room 文件/文件夹"})
 @RestController
-public class DataRoomController {
+public class DocumentController {
 
-    @Autowired
-    private DataRoomServiceImpl dataRoomService;
+    @Resource
+    private DocumentServiceImpl dataRoomService;
+    @Resource
+    private OauthJWTUtil oauthJWTUtil;
 
     @ApiOperation("上传文件")
-    @PostMapping("/upload/file")
-    public ReturnData addFile(@RequestPart("file") MultipartFile file, @ApiParam(value = "父级菜单") @RequestParam() Long parentId, @RequestHeader(value = "AccessToken") String token){
+    @PostMapping("/documents")
+    public ReturnData addFile(@RequestHeader(value = "authorization") String token, @RequestPart("document") MultipartFile document,
+                              @RequestParam("parentId") Long parentId, @RequestParam(value = "name",required = false) String name,
+                              @RequestParam(value = "comments",required = false) String comments){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.addFile(file, biteClaims.getAccountId(), parentId, biteClaims.getTenantId());
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            AddDocumentRequest addDocumentRequest = new AddDocumentRequest();
+            addDocumentRequest.setParentId(parentId);
+            addDocumentRequest.setDocument(document);
+            addDocumentRequest.setAccountId(claims.getAccountId());
+            addDocumentRequest.setName(name);
+            addDocumentRequest.setComments(comments);
+            dataRoomService.addFile(addDocumentRequest);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
     }
 
-    @ApiOperation("新增文件夹")
-    @PostMapping("/add/folder")
-    public ReturnData addFolder(@RequestBody AddFolderDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
+    /**
+     * 新增文件夹
+     * */
+    @PostMapping("/folders")
+    public ReturnData addFolder(@RequestHeader(value = "authorization") String token, @RequestBody AddFolderRequest request){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            DataRoom dataRoom = DataRoom.builder().name(request.getName()).comments(request.getComments())
-                    .parentId(request.getParentId()).tenantId(biteClaims.getTenantId()).operationAccountId(biteClaims.getAccountId()).build();
-            dataRoomService.addFolder(dataRoom);
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            request.setAccountId(claims.getAccountId());
+            dataRoomService.addFolder(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -105,7 +114,7 @@ public class DataRoomController {
 
     @ApiOperation("分页查询7天内的删除")
     @PostMapping("/page/seven-days-ago-delete")
-    public ReturnData<Page<DataRoom>> pageDelete(@RequestBody PageDeleteDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
+    public ReturnData<Page<Document>> pageDelete(@RequestBody PageDeleteDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
             return ReturnData.success(dataRoomService.pageDelete(request, biteClaims.getTenantId()));
@@ -139,12 +148,31 @@ public class DataRoomController {
         }
     }
 
-    @ApiOperation("根据id查询文件夹的子文件")
-    @PostMapping("/get/folder-child")
-    public ReturnData<List<DataRoom>> getFolderChild(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
+    /**
+     * 查询文件
+     * */
+    @GetMapping("/folders/{folderId}/documents")
+    public ReturnData<QueryDocumentsResponse> queryFolders(@RequestHeader("authorization") String token, @PathVariable("folderId") Long folderId,
+                                                           @RequestParam(value = "name", required = false) String name,
+                                                           @RequestParam(value = "sort", required = false) String sort,
+                                                           @RequestParam(value = "pageIndex", required = false) Long pageIndex,
+                                                           @RequestParam(value = "pageSize", required = false) Long pageSize){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.getFolderChild(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId()));
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            QueryDocumentsRequest request = new QueryDocumentsRequest();
+            request.setDocumentId(folderId);
+            request.setAccountId(claims.getAccountId());
+            request.setPageIndex(pageIndex);
+            request.setPageSize(pageSize);
+            if (ObjectUtils.isNotEmpty(name)){
+                List<String> names = ParamsUtil.getStringParams(name);
+                request.setNames(names);
+            }
+            if (ObjectUtils.isNotEmpty(sort)){
+                List<Order> orders = ParamsUtil.getOrderParams(sort);
+                request.setOrders(orders);
+            }
+            return ReturnData.success(dataRoomService.queryFolder(request));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -152,7 +180,7 @@ public class DataRoomController {
 
     @ApiOperation("根据id查询文件")
     @PostMapping("/get/file")
-    public ReturnData<DataRoom> getFile(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
+    public ReturnData<Document> getFile(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             // TODO 查询历史版本
             BiteClaims biteClaims = JWTUtil.checkToken(token);

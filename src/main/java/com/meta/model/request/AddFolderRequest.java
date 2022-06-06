@@ -10,9 +10,9 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-public class AddFolderDataRoomRequest {
+public class AddFolderRequest {
 
-    // 父节点（跟节点不存在父节点）
+    // 父节点
     private Long parentId;
 
     // 名称
@@ -21,7 +21,10 @@ public class AddFolderDataRoomRequest {
     // 描述
     private String comments;
 
+    // 操作人
+    private Long accountId;
+
     @Tolerate
-    public AddFolderDataRoomRequest(){}
+    public AddFolderRequest(){}
 
 }
