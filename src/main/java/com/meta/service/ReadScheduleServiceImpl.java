@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.meta.mapper.ReadScheduleMapper;
-import com.meta.model.pojo.DataRoom;
+import com.meta.model.pojo.Document;
 import com.meta.model.pojo.ReadSchedule;
 import com.meta.model.pojo.ReadTime;
 import com.meta.model.pojo.Share;
@@ -33,7 +33,7 @@ public class ReadScheduleServiceImpl {
     @Autowired
     private ReadTimeServiceImpl readTimeService;
     @Autowired
-    private DataRoomServiceImpl dataRoomService;
+    private DocumentServiceImpl dataRoomService;
     @Autowired
     protected ShareServiceImpl shareService;
 
@@ -216,9 +216,9 @@ public class ReadScheduleServiceImpl {
             // 查询阅读源名称和url
             switch (item.getSourceType()){
                 case PDF:
-                    DataRoom dataRoom = dataRoomService.getFileInternal(item.getSourceId());
-                    if (!ObjectUtils.isEmpty(dataRoom)){
-                        readRecordByAccountVO.setName(dataRoom.getName());
+                    Document document = dataRoomService.getFileInternal(item.getSourceId());
+                    if (!ObjectUtils.isEmpty(document)){
+                        readRecordByAccountVO.setName(document.getName());
                     }
                     break;
                 case SHARE:

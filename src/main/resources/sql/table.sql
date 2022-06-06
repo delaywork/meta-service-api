@@ -32,21 +32,23 @@ CREATE TABLE if not exists account
         primary key (id)
 );
 
-CREATE TABLE if not exists account_authorization
+CREATE TABLE if not exists activity
 (
     id bigint not null,
-    account_id bigint not null comment '账户 id',
-    type varchar(64) not null comment '授权类型',
-    context text null comment '授权内容',
+    operation_resource varchar(128) not null comment '操作什么资源',
+    operation_resource_id bigint not null comment '资源id',
+    operation_type varchar(128) not null comment '操作类型',
+    operation_account bigint not null comment '账户 id',
+    detail json null comment '内容',
     tenant_id bigint null comment '租户id',
     data_create_time timestamp null comment '授权时间',
     data_update_time timestamp null,
     data_is_deleted tinyint default 0 null,
-    constraint account_authorization
+    constraint activity
         primary key (id)
 );
 
-CREATE TABLE if not exists data_room
+CREATE TABLE if not exists document
 (
     id bigint not null,
     parent_id bigint null comment '父节点 id',
@@ -60,7 +62,7 @@ CREATE TABLE if not exists data_room
     data_create_time timestamp null,
     data_update_time timestamp null,
     data_is_deleted tinyint default 0 null,
-    constraint data_room
+    constraint document
         primary key (id)
 );
 

@@ -9,12 +9,14 @@ import com.meta.service.InfoServiceImpl;
 import com.meta.utils.OauthJWTUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
 @Api(value = "Meta", tags = {"Meta"})
 @RestController
+@Log4j2
 public class InfoController {
 
     @Resource

@@ -1,6 +1,5 @@
 package com.meta.model.request;
 
-import com.meta.model.enums.DataRoomTypeEnum;
 import com.meta.model.enums.ShareSourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;

@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
-import com.meta.model.enums.DataRoomCloudEnum;
-import com.meta.model.enums.DataRoomTypeEnum;
+import com.meta.model.enums.DocumentCloudEnum;
+import com.meta.model.enums.DocumentTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -34,7 +34,7 @@ public class VersionHistory extends BaseModel {
 
     // 类型（pdf、文件夹...）
     @TableField(value = "type")
-    private DataRoomTypeEnum type;
+    private DocumentTypeEnum type;
 
     // 名称
     @TableField(value = "name")
@@ -50,7 +50,7 @@ public class VersionHistory extends BaseModel {
 
     // 云
     @TableField(value = "cloud")
-    private DataRoomCloudEnum cloud;
+    private DocumentCloudEnum cloud;
 
     // 租户id
     @TableField(value = "tenant_id")

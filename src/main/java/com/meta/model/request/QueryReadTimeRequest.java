@@ -1,6 +1,6 @@
 package com.meta.model.request;
 
-import com.meta.model.enums.DataRoomTypeEnum;
+import com.meta.model.enums.DocumentTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -13,7 +13,7 @@ public class QueryReadTimeRequest {
     private Long sourceId;
 
     // 阅读源类型
-    private DataRoomTypeEnum sourceType;
+    private DocumentTypeEnum sourceType;
 
     @Tolerate
     public QueryReadTimeRequest(){}

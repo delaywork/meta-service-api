@@ -3,9 +3,9 @@ package com.meta.model.enums;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum DataRoomCloudEnum {
-    AZURE("AZURE","azure"),
-    QIU("QIU","qiu"),
+public enum OrderEnum {
+    DESC("DESC","倒序"),
+    ASC("ASC","正序"),
     ;
 
     @EnumValue
@@ -13,7 +13,7 @@ public enum DataRoomCloudEnum {
 
     private String describe;
 
-    DataRoomCloudEnum(String value, String describe){
+    OrderEnum(String value, String describe){
         this.value = value;
         this.describe = describe;
     }

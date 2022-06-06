@@ -3,9 +3,10 @@ package com.meta.model.enums;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum DataRoomTypeEnum {
-    PDF("PDF","pdf"),
-    FOLDER("FOLDER","文件夹"),
+public enum ActivityOperationTypeEnum {
+    AGREE_TO_WECHAT_AUTHORIZATION("AGREE_TO_WECHAT_AUTHORIZATION","同意微信授权"),
+    AGREE_TO_TERMS_CONDITIONS("AGREE_TO_TERMS_CONDITIONS","同意条款"),
+    AGREE_TO_POLICY("AGREE_TO_POLICY","同意策略"),
     ;
 
     @EnumValue
@@ -13,7 +14,7 @@ public enum DataRoomTypeEnum {
 
     private String describe;
 
-    DataRoomTypeEnum(String value, String describe){
+    ActivityOperationTypeEnum(String value, String describe){
         this.value = value;
         this.describe = describe;
     }

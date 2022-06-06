@@ -5,7 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.meta.mapper.AccountMapper;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
+import com.meta.model.enums.ActivityOperationResourceEnum;
+import com.meta.model.enums.ActivityOperationTypeEnum;
 import com.meta.model.pojo.Account;
+import com.meta.model.pojo.Activity;
 import com.meta.model.request.*;
 import com.meta.utils.*;
 import lombok.extern.log4j.Log4j2;
@@ -14,21 +17,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+
 @Service
 @Log4j2
 public class AccountServiceImpl {
 
-    @Autowired
+    @Resource
     private AccountMapper accountMapper;
-    @Autowired
+    @Resource
     private TenantServiceImpl tenantService;
-    @Autowired
-    private DataRoomServiceImpl dataRoomService;
-    @Autowired
+    @Resource
+    private DocumentServiceImpl dataRoomService;
+    @Resource
+    private ActivityServiceImpl activityService;
+    @Resource
     private WechatUtil wechatUtil;
-    @Autowired
+    @Resource
     private SmsUtil smsUtil;
-    @Autowired
+    @Resource
     private RedisUtil redisUtil;
 
     /**
@@ -87,6 +94,17 @@ public class AccountServiceImpl {
         accountMapper.insert(newAccount);
         // 初始化根目录
         dataRoomService.initRootFolder(newAccount.getId(), tenantId);
+        // 添加操作记录
+        Activity termsConditionsActivity = Activity.builder().operationAccount(newAccount.getId())
+                .operationResource(ActivityOperationResourceEnum.ACCOUNT)
+                .operationResourceId(newAccount.getId())
+                .operationType(ActivityOperationTypeEnum.AGREE_TO_TERMS_CONDITIONS).build();
+        activityService.addActivity(termsConditionsActivity);
+        Activity policyActivity = Activity.builder().operationAccount(newAccount.getId())
+                .operationResource(ActivityOperationResourceEnum.ACCOUNT)
+                .operationResourceId(newAccount.getId())
+                .operationType(ActivityOperationTypeEnum.AGREE_TO_POLICY).build();
+        activityService.addActivity(policyActivity);
         return newAccount;
     }
 
