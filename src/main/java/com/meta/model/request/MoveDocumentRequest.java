@@ -10,13 +10,15 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-public class UpdateFolderNameRequest {
+public class MoveDocumentRequest {
 
     private Long folderId;
 
-    private String name;
+    private Long targetFolderId;
+
+    private Long accountId;
 
     @Tolerate
-    public UpdateFolderNameRequest(){}
+    public MoveDocumentRequest(){}
 
 }

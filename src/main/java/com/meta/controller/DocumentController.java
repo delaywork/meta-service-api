@@ -9,7 +9,6 @@ import com.meta.service.DocumentServiceImpl;
 import com.meta.utils.JWTUtil;
 import com.meta.utils.OauthJWTUtil;
 import com.meta.utils.ParamsUtil;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.ObjectUtils;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.util.List;
 
-@Api(value = "Data Room 文件/文件夹", tags = {"Data Room 文件/文件夹"})
 @RestController
 public class DocumentController {
 
@@ -29,7 +27,9 @@ public class DocumentController {
     @Resource
     private OauthJWTUtil oauthJWTUtil;
 
-    @ApiOperation("上传文件")
+    /**
+     * 新增文件
+     * */
     @PostMapping("/documents")
     public ReturnData addFile(@RequestHeader(value = "authorization") String token, @RequestPart("document") MultipartFile document,
                               @RequestParam("parentId") Long parentId, @RequestParam(value = "name",required = false) String name,
@@ -64,36 +64,39 @@ public class DocumentController {
         }
     }
 
-    @ApiOperation("重新上传文件")
-    @PostMapping("/update/file")
-    public ReturnData updateFile(@RequestPart MultipartFile file, @ApiParam(value = "fileId") @RequestParam() Long fileId, @RequestHeader(value = "AccessToken") String token){
+    /**
+     * 编辑文件
+     * */
+    @PatchMapping("/documents/{documentId}")
+    public ReturnData updateFile(@RequestHeader(value = "authorization") String token, @PathVariable("documentId") Long documentId,
+                                 @RequestPart(value = "file", required = false) MultipartFile file, @RequestParam(value = "name", required = false) String name,
+                                 @RequestParam(value = "parentId", required = false) Long parentId, @RequestParam(value = "comments", required = false) String comments){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.updateFile(file, biteClaims.getAccountId(), fileId, biteClaims.getTenantId());
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            UpdateFileRequest request = UpdateFileRequest.builder().accountId(claims.getAccountId())
+                    .documentId(documentId)
+                    .parentId(parentId)
+                    .name(name)
+                    .comments(comments)
+                    .file(file)
+                    .build();
+            dataRoomService.updateFile(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
     }
 
-    @ApiOperation("修改文件夹名称")
-    @PostMapping("/update/folder-name")
-    public ReturnData updateFolderName(@RequestBody UpdateFolderNameRequest request, @RequestHeader(value = "AccessToken") String token){
+    /**
+     * 编辑文件夹
+     * */
+    @PatchMapping("/folders/{folderId}")
+    public ReturnData updateFolderName(@RequestHeader(value = "authorization") String token, @PathVariable("folderId") Long folderId, @RequestBody UpdateFolderRequest request){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.updateFolderName(request, biteClaims.getAccountId(), biteClaims.getTenantId());
-            return ReturnData.success();
-        }catch (FastRunTimeException fastRunTimeException){
-            return ReturnData.failed(fastRunTimeException);
-        }
-    }
-
-    @ApiOperation("移动文件/文件夹")
-    @PostMapping("/move/data-room")
-    public ReturnData moveDataRoom(@RequestBody MoveDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
-        try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.moveDataRoom(request, biteClaims.getAccountId(), biteClaims.getTenantId());
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            request.setAccountId(claims.getAccountId());
+            request.setFolderId(folderId);
+            dataRoomService.updateFolder(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);

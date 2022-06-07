@@ -125,44 +125,99 @@ public class DocumentServiceImpl {
     }
 
     /**
-     * 修改文件（将历史记录转移到 VersionHistory）
+     * 修改文件夹
      * */
     @Transactional
-    public void updateFile(MultipartFile file, Long accountId, Long fileId, Long tenantId){
-        Document document = this.getFile(fileId, accountId, tenantId);
-        // 将文件移动到 VersionHistory
-        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).note(document.getComments())
-                .operationAccountId(accountId).name(document.getName()).type(document.getType()).url(document.getUrl()).cloud(document.getCloud()).build();
-        versionHistoryService.add(versionHistory);
-        // 获取文件名
-        String name = file.getOriginalFilename().replace(" ","");
-        // 上传文件到七牛
-        String url = qiuUtil.uploadStream(file);
-        UpdateWrapper<Document> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(Document::getId, fileId).set(Document::getName,name).set(Document::getUrl,url);
-        documentMapper.update(Document.builder().build(), wrapper);
+    public void updateFolder(UpdateFolderRequest request){
+        log.info("修改文件夹信息, accountId:{}, folderId:{}, parentId:{}, name:{}", request.getAccountId(), request.getFolderId(), request.getParentId(), request.getName());
+        if (ObjectUtils.isEmpty(request.getFolderId()) || ObjectUtils.isEmpty(request.getAccountId())){
+            throw new FastRunTimeException(ErrorEnum.参数不正确);
+        }
+        // 校验是否能被修改
+        Document document = documentMapper.selectById(request.getFolderId());
+        if (!DocumentTypeEnum.FOLDER.equals(document.getType())){
+            log.info("不是文件夹，不能修改，type:{}", document.getType());
+            throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
+        }
+        if (ROOT.equals(document.getName()) && request.getFolderId().equals(request.getAccountId())){
+            throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
+        }
+        // 编辑文件夹
+        if (ObjectUtils.isNotEmpty(request.getParentId())){
+            log.info("执行移动文件目录操作");
+            this.moveDocument(MoveDocumentRequest.builder().folderId(request.getFolderId())
+                    .targetFolderId(request.getParentId())
+                    .accountId(request.getAccountId())
+                    .build());
+            log.info("移动文件目录完成");
+        }
+        UpdateWrapper<Document> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().eq(Document::getId, request.getFolderId())
+                .eq(Document::getDataIsDeleted, false);
+        if (ObjectUtils.isNotEmpty(request.getName())){
+            log.info("修改文件夹名称");
+            updateWrapper.lambda().set(Document::getName, request.getName());
+        }
+        if (ObjectUtils.isNotEmpty(request.getComments())){
+            log.info("修改文件夹备注");
+            updateWrapper.lambda().set(Document::getComments, request.getComments());
+        }
+        updateWrapper.lambda().set(Document::getOperationAccountId, request.getAccountId());
+        documentMapper.update(Document.builder().build(), updateWrapper);
     }
 
     /**
-     * 修改文件夹名称
+     * 修改文件（将历史记录转移到 VersionHistory）
      * */
     @Transactional
-    public void updateFolderName(UpdateFolderNameRequest request, Long accountId, Long tenantId){
-        // 判断文件夹名称是否合法
-        if (ROOT.equals(request.getName())){
-            throw new FastRunTimeException(ErrorEnum.不能使用根目录命名);
+    public void updateFile(UpdateFileRequest request){
+        log.info("编辑文件, fileId:{}, accountId:{}, name:{}, parentId:{}", request.getDocumentId(), request.getAccountId(), request.getName(), request.getParentId());
+        if (ObjectUtils.isEmpty(request.getDocumentId()) || ObjectUtils.isEmpty(request.getAccountId())){
+            throw new FastRunTimeException(ErrorEnum.参数不正确);
         }
-        UpdateWrapper<Document> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(Document::getId,request.getFolderId()).eq(Document::getTenantId,tenantId)
-                .set(Document::getName, request.getName()).set(Document::getOperationAccountId, accountId);
-        documentMapper.update(Document.builder().build(), wrapper);
+        // 校验是否能被修改
+        Document document = documentMapper.selectById(request.getDocumentId());
+        if (DocumentTypeEnum.FOLDER.equals(document.getType())){
+            log.info("不是文件，不能修改，type:{}", document.getType());
+            throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
+        }
+        // 编辑文件
+        if (ObjectUtils.isNotEmpty(request.getParentId())){
+            log.info("执行移动文件操作");
+            this.moveDocument(MoveDocumentRequest.builder().folderId(request.getDocumentId())
+                    .targetFolderId(request.getParentId())
+                    .accountId(request.getAccountId())
+                    .build());
+            log.info("移动文件完成");
+        }
+        UpdateWrapper<Document> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().eq(Document::getId, request.getDocumentId())
+                .eq(Document::getDataIsDeleted, false);
+        if (ObjectUtils.isNotEmpty(request.getName())){
+            log.info("修改文件夹名称");
+            updateWrapper.lambda().set(Document::getName, request.getName());
+        }
+        if (ObjectUtils.isNotEmpty(request.getComments())){
+            log.info("修改文件夹备注");
+            updateWrapper.lambda().set(Document::getComments, request.getComments());
+        }
+        if (ObjectUtils.isNotEmpty(request.getFile())){
+            log.info("重新上传文件");
+            String url = qiuUtil.uploadStream(request.getFile());
+            updateWrapper.lambda().set(Document::getUrl, url);
+        }
+        // 将文件移动到 VersionHistory
+//        VersionHistory versionHistory = VersionHistory.builder().dataRoomId(fileId).tenantId(tenantId).note(document.getComments())
+//                .operationAccountId(accountId).name(document.getName()).type(document.getType()).url(document.getUrl()).cloud(document.getCloud()).build();
+//        versionHistoryService.add(versionHistory);
+        documentMapper.update(Document.builder().build(), updateWrapper);
     }
 
     /**
      * 移动文件/文件夹
      * */
     @Transactional
-    public void moveDataRoom(MoveDataRoomRequest request, Long accountId, Long tenantId){
+    public void moveDocument(MoveDocumentRequest request){
         // 校验 targetFolderId 是否是文件夹类型
         Document targetDocument = documentMapper.selectById(request.getTargetFolderId());
         Document document = documentMapper.selectById(request.getFolderId());
@@ -170,10 +225,6 @@ public class DocumentServiceImpl {
         if (ObjectUtils.isEmpty(targetDocument)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
-        }
-        if (targetDocument.getTenantId() != tenantId){
-            // 目标文件不是你的文件
-            throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
         if (!DocumentTypeEnum.FOLDER.equals(targetDocument.getType())){
             // 目标不是文件夹类型
@@ -378,7 +429,13 @@ public class DocumentServiceImpl {
         wrapper.lambda().eq(Document::getParentId,request.getDocumentId())
                 .eq(Document::getDataIsDeleted, false);
         if (ObjectUtils.isNotEmpty(request.getNames())){
-//            wrapper.lambda().
+            for (int i=0; i<request.getNames().size(); i++){
+                if (i == 0){
+                    wrapper.lambda().like(Document::getName, request.getNames().get(i));
+                }else{
+                    wrapper.lambda().or().like(Document::getName, request.getNames().get(i));
+                }
+            }
         }
         // 排序条件
         if (ObjectUtils.isNotEmpty(request.getOrders())){

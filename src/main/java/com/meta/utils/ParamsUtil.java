@@ -28,7 +28,7 @@ public class ParamsUtil {
         if (StringUtils.isBlank(s)){
             return null;
         }
-        String[] split = s.split("|");
+        String[] split = s.split("\\|");
         List<String> strings = Arrays.asList(split);
         return strings;
     }

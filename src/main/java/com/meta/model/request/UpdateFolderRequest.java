@@ -10,12 +10,20 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-public class MoveDataRoomRequest {
+public class UpdateFolderRequest {
 
     private Long folderId;
-    private Long targetFolderId;
+
+    private String name;
+
+    private Long parentId;
+
+    private String comments;
+
+    // 操作人id
+    private Long accountId;
 
     @Tolerate
-    public MoveDataRoomRequest(){}
+    public UpdateFolderRequest(){}
 
 }

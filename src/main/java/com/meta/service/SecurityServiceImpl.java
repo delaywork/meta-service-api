@@ -5,7 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.meta.mapper.AccountMapper;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
+import com.meta.model.enums.ActivityDetailKeyEnum;
+import com.meta.model.enums.ActivityOperationResourceEnum;
+import com.meta.model.enums.ActivityOperationTypeEnum;
+import com.meta.model.enums.VerificationMethodEnum;
 import com.meta.model.pojo.Account;
+import com.meta.model.pojo.Activity;
 import com.meta.model.request.AddVerificationRequest;
 import com.meta.model.request.SecurityRequest;
 import com.meta.utils.*;
@@ -14,8 +19,10 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -28,6 +35,8 @@ public class SecurityServiceImpl {
     private RedisUtil redisUtil;
     @Resource
     private AccountMapper accountMapper;
+    @Resource
+    private ActivityServiceImpl activityService;
 
     /**
      * 发送验证码
@@ -61,6 +70,7 @@ public class SecurityServiceImpl {
     /**
      * 安全验证（绑定账户第三方验证端）
      * */
+    @Transactional
     public void security(SecurityRequest request){
         if (ObjectUtils.isEmpty(request.getMethod())){
             log.info("没有安全认证类型");
@@ -73,6 +83,7 @@ public class SecurityServiceImpl {
         if (ObjectUtils.isEmpty(account)){
             throw new FastRunTimeException(ErrorEnum.帐户不存在);
         }
+        HashMap<String, String> detailMap = new HashMap<>();
         switch (request.getMethod()){
             case PHONE:
                 log.info("进行手机安全认证");
@@ -100,9 +111,15 @@ public class SecurityServiceImpl {
                 updateWrapper.lambda().set(Account::getAreaCode, request.getAreaCode());
                 updateWrapper.lambda().set(Account::getPhone, request.getPhone());
                 accountMapper.update(Account.builder().build(), updateWrapper);
+                // 操作记录具体内容
+                detailMap.put(ActivityDetailKeyEnum.SECURITY_TYPE.getValue(), VerificationMethodEnum.PHONE.getValue());
+                detailMap.put(ActivityDetailKeyEnum.SECURITY_VALUE.getValue(), request.getCode() + request.getPhone());
                 break;
             case EMAIL:
                 log.info("进行邮箱安全认证");
+                // 操作记录具体内容
+                detailMap.put(ActivityDetailKeyEnum.SECURITY_TYPE.getValue(), VerificationMethodEnum.EMAIL.getValue());
+                detailMap.put(ActivityDetailKeyEnum.SECURITY_VALUE.getValue(), request.getEmail());
                 break;
             case PASSWORD:
                 log.info("进行密码安全认证");
@@ -120,8 +137,19 @@ public class SecurityServiceImpl {
                 String password = bcryptPasswordEncoder.encode(request.getPassword());
                 passwordWrapper.lambda().set(Account::getPassword, password);
                 accountMapper.update(Account.builder().build(), passwordWrapper);
+                // 操作记录具体内容
+                detailMap.put(ActivityDetailKeyEnum.SECURITY_TYPE.getValue(), VerificationMethodEnum.PASSWORD.getValue());
+                detailMap.put(ActivityDetailKeyEnum.SECURITY_VALUE.getValue(), password);
                 break;
         }
+        // 添加操作记录
+        Activity termsConditionsActivity = Activity.builder().operationAccount(request.getAccountId())
+                .operationResource(ActivityOperationResourceEnum.ACCOUNT)
+                .operationResourceId(request.getAccountId())
+                .operationType(ActivityOperationTypeEnum.SECURITY_VERIFICATION)
+                .detail(detailMap)
+                .build();
+        activityService.addActivity(termsConditionsActivity);
     }
 
 }
