@@ -4,12 +4,16 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.WechatUtilLoginResponse;
+import com.meta.model.enums.ActivityOperationResourceEnum;
+import com.meta.model.enums.ActivityOperationTypeEnum;
 import com.meta.model.enums.AuthorityEnum;
 import com.meta.model.pojo.Account;
+import com.meta.model.pojo.Activity;
 import com.meta.model.request.AddAccountRequest;
 import com.meta.model.request.GetAccountRequest;
 import com.meta.model.request.vo.UserOauthVo;
 import com.meta.service.AccountServiceImpl;
+import com.meta.service.ActivityServiceImpl;
 import com.meta.utils.RedisUtil;
 import com.meta.utils.WechatUtil;
 import lombok.extern.log4j.Log4j2;
@@ -32,9 +36,11 @@ import java.util.List;
 public class WeChatTokenGranter extends AbstractTokenGranter {
 
     @Resource
-    private WechatUtil wechatUtil;
+    private WechatUtil wechatUtil = SpringUtil.getBean(WechatUtil.class);
     @Resource
     private AccountServiceImpl accountService = SpringUtil.getBean(AccountServiceImpl.class);
+    @Resource
+    private ActivityServiceImpl activityService = SpringUtil.getBean(ActivityServiceImpl.class);
 
     public WeChatTokenGranter(AuthorizationServerTokenServices tokenServices, ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory, String grantType) {
         super(tokenServices, clientDetailsService, requestFactory, grantType);
@@ -57,6 +63,7 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
             log.info("微信认证失败 jsCode:{}", jsCode);
             throw new FastRunTimeException(ErrorEnum.认证异常);
         }
+
         // 查询账户
         Account account = accountService.getAccount(GetAccountRequest.builder().openid(wechatResponse.getOpenid()).unionid(wechatResponse.getUnionid()).build());
         if (ObjectUtils.isEmpty(account)){
@@ -64,6 +71,12 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
             log.info("创建微信关联账号，openId:{}, unionId:{}", wechatResponse.getOpenid(), wechatResponse.getUnionid());
             account = accountService.addAccount(AddAccountRequest.builder().openid(wechatResponse.getOpenid()).unionid(wechatResponse.getUnionid()).name(userName).avatarUrl(avatarUrl).build());
         }
+        // 添加操作记录
+        Activity termsConditionsActivity = Activity.builder().operationAccount(account.getId())
+                .operationResource(ActivityOperationResourceEnum.ACCOUNT)
+                .operationResourceId(account.getId())
+                .operationType(ActivityOperationTypeEnum.AGREE_TO_TERMS_CONDITIONS).build();
+        activityService.addActivity(termsConditionsActivity);
         // 生成认证账号信息
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         if (ObjectUtils.isNotEmpty(account.getAreaCode()) && ObjectUtils.isNotEmpty(account.getPhone())){
