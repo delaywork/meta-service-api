@@ -36,6 +36,7 @@ public enum ErrorEnum {
     认证异常("AUTH_EXCEPTION", "auth exception"),
     token异常("TOKEN_EXCEPTION", "token exception"),
     权限异常("ACCESS_DENIED_EXCEPTION", "access denied exception"),
+    微信白名单异常("WECHAT_WHITE_LIST_EXCEPTION", "wechat white list exception"),
     //-----------------------------------------------------------------------------------------------------------------
     // 其它异常（第三方服务调用失败），“ O ”开头
     //-----------------------------------------------------------------------------------------------------------------

@@ -59,7 +59,7 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
 //        WechatUtilLoginResponse wechatResponse = new WechatUtilLoginResponse();
 //        wechatResponse.setOpenid("1");
 //        wechatResponse.setUnionid("1");
-        if (ObjectUtils.isEmpty(wechatResponse)){
+        if (ObjectUtils.isEmpty(wechatResponse) || ObjectUtils.isEmpty(wechatResponse.getOpenid()) || ObjectUtils.isEmpty(wechatResponse.getUnionid())){
             log.info("微信认证失败 jsCode:{}", jsCode);
             throw new FastRunTimeException(ErrorEnum.认证异常);
         }
