@@ -11,6 +11,13 @@ import java.util.TimeZone;
 @Log4j2
 public class TimeZoneFormatUtil {
 
+    public static String format(Timestamp timestamp){
+        log.info("进行时区转换, timeZone: UTC");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMM d,yyyy hh:mm a", Locale.ENGLISH);
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return simpleDateFormat.format(timestamp.getTime());
+    }
+
     public static String format(Timestamp timestamp, Integer timeZone){
         log.info("进行时区转换, timeZone:{}", timeZone);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMM d,yyyy hh:mm a", Locale.ENGLISH);

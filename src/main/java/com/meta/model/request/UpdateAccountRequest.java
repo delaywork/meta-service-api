@@ -17,16 +17,13 @@ public class UpdateAccountRequest {
     private Long accountId;
 
     // 用户名
-    private String setName;
+    private String name;
 
     // 性别
     private AccountSexEnum sex;
 
     // 生日
     private Timestamp birthday;
-
-    // 用户密码
-    private String password;
 
     // 用户头像
     private String avatarUrl;

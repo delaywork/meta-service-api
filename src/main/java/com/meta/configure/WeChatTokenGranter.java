@@ -70,13 +70,14 @@ public class WeChatTokenGranter extends AbstractTokenGranter {
             // 创建账户
             log.info("创建微信关联账号，openId:{}, unionId:{}", wechatResponse.getOpenid(), wechatResponse.getUnionid());
             account = accountService.addAccount(AddAccountRequest.builder().openid(wechatResponse.getOpenid()).unionid(wechatResponse.getUnionid()).name(userName).avatarUrl(avatarUrl).build());
+        }else{
+            // 添加操作记录
+            Activity termsConditionsActivity = Activity.builder().operationAccount(account.getId())
+                    .operationResource(ActivityOperationResourceEnum.ACCOUNT)
+                    .operationResourceId(account.getId())
+                    .operationType(ActivityOperationTypeEnum.AGREE_TO_WECHAT_AUTHORIZATION).build();
+            activityService.addActivity(termsConditionsActivity);
         }
-        // 添加操作记录
-        Activity termsConditionsActivity = Activity.builder().operationAccount(account.getId())
-                .operationResource(ActivityOperationResourceEnum.ACCOUNT)
-                .operationResourceId(account.getId())
-                .operationType(ActivityOperationTypeEnum.AGREE_TO_TERMS_CONDITIONS).build();
-        activityService.addActivity(termsConditionsActivity);
         // 生成认证账号信息
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         if (ObjectUtils.isNotEmpty(account.getAreaCode()) && ObjectUtils.isNotEmpty(account.getPhone())){

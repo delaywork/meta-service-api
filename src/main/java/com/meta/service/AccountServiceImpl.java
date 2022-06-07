@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.meta.mapper.AccountMapper;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
+import com.meta.model.enums.ActivityDetailKeyEnum;
 import com.meta.model.enums.ActivityOperationResourceEnum;
 import com.meta.model.enums.ActivityOperationTypeEnum;
 import com.meta.model.pojo.Account;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 
 @Service
 @Log4j2
@@ -119,33 +121,44 @@ public class AccountServiceImpl {
         UpdateWrapper<Account> updateWrapper = new UpdateWrapper<>();
         updateWrapper.lambda().eq(Account::getId, request.getAccountId());
         // 设置需要修改的信息
-        if (ObjectUtils.isNotEmpty(request.getSetName())){
-            updateWrapper.lambda().set(Account::getName, request.getSetName());
-        }
-        if (ObjectUtils.isNotEmpty(request.getPassword())){
-            BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
-            String password = bcryptPasswordEncoder.encode(request.getPassword());
-            updateWrapper.lambda().set(Account::getPassword, password);
+        HashMap<String, String> detailMap = new HashMap<>();
+        if (ObjectUtils.isNotEmpty(request.getName())){
+            updateWrapper.lambda().set(Account::getName, request.getName());
+            detailMap.put(ActivityDetailKeyEnum.NAME.getValue(), request.getName());
         }
         if (ObjectUtils.isNotEmpty(request.getAvatarUrl())){
             updateWrapper.lambda().set(Account::getAvatarUrl, request.getAvatarUrl());
+            detailMap.put(ActivityDetailKeyEnum.AVATAR_URL.getValue(), request.getAvatarUrl());
         }
         if (ObjectUtils.isNotEmpty(request.getTimeZone())){
             updateWrapper.lambda().set(Account::getTimeZone, request.getTimeZone());
+            detailMap.put(ActivityDetailKeyEnum.TIME_ZONE.getValue(), request.getTimeZone().toString());
         }
         if (ObjectUtils.isNotEmpty(request.getTimeZoneText())){
             updateWrapper.lambda().set(Account::getTimeZoneText, request.getTimeZoneText());
+            detailMap.put(ActivityDetailKeyEnum.TIME_ZONE_TEXT.getValue(), request.getTimeZoneText());
         }
         if (ObjectUtils.isNotEmpty(request.getLanguageType())){
             updateWrapper.lambda().set(Account::getLanguageType, request.getLanguageType());
+            detailMap.put(ActivityDetailKeyEnum.LANGUAGE_TYPE.getValue(), request.getLanguageType());
         }
         if (ObjectUtils.isNotEmpty(request.getSex())){
             updateWrapper.lambda().set(Account::getSex, request.getSex());
+            detailMap.put(ActivityDetailKeyEnum.SEX.getValue(), request.getSex().getValue());
         }
         if (ObjectUtils.isNotEmpty(request.getBirthday())){
             updateWrapper.lambda().set(Account::getBirthday, request.getBirthday());
+            detailMap.put(ActivityDetailKeyEnum.BIRTHDAY.getValue(), TimeZoneFormatUtil.format(request.getBirthday()));
         }
         accountMapper.update(Account.builder().build(), updateWrapper);
+        // 添加操作记录
+        Activity termsConditionsActivity = Activity.builder().operationAccount(request.getAccountId())
+                .operationResource(ActivityOperationResourceEnum.ACCOUNT)
+                .operationResourceId(request.getAccountId())
+                .operationType(ActivityOperationTypeEnum.UPDATE_ACCOUNT)
+                .detail(detailMap)
+                .build();
+        activityService.addActivity(termsConditionsActivity);
     }
 
 }
