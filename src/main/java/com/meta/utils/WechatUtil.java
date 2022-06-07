@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class WechatUtil {
     @Value("${WECHAT_SECRET:}")
     private String WECHAT_SECRET;
 
-    @Autowired
+    @Resource
     private RestTemplate restTemplate;
 
     public WechatUtilLoginResponse login(String jsCode) {
