@@ -40,11 +40,11 @@ public class WechatUtil {
             JSONObject jsonObject = JSONObject.parseObject(responseEntity.getBody());
             if (ObjectUtil.isNotEmpty(jsonObject.getLong("errcode"))){
                 Long errcode = jsonObject.getLong("errcode");
-                if (errcode == 40029L){
+                if (errcode == 40029){
                     log.info("wechat code无效: 40029");
                     throw new FastRunTimeException(ErrorEnum.code无效);
                 }
-                if (errcode == 45011L){
+                if (errcode == 45011){
                     log.info("wechat 登录频率限制: 45011");
                     throw new FastRunTimeException(ErrorEnum.登录频率限制);
                 }
