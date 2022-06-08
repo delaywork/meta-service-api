@@ -23,7 +23,7 @@ public class SecurityController {
     private OauthJWTUtil oauthJWTUtil;
 
     @ApiOperation("发送验证码")
-    @PostMapping("/verification")
+    @PostMapping("/verifications")
     public ReturnData addVerification(@RequestHeader("authorization") String token, @RequestBody AddVerificationRequest request){
         try{
             securityService.addVerification(request);
