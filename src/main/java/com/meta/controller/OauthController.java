@@ -67,6 +67,10 @@ public class OauthController {
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }catch (Exception exception){
+            switch (authType){
+                case REFRESH_TOKEN:
+                    log.info("refresh_token:{}", refreshToken);
+            }
             log.info("认证失败，message:{}", exception.getMessage());
             return ReturnData.failed(new FastRunTimeException(ErrorEnum.认证异常));
         }
