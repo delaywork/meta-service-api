@@ -67,7 +67,7 @@ public class DocumentController {
     /**
      * 编辑文件
      * */
-    @PatchMapping("/documents/{documentId}")
+    @PutMapping("/documents/{documentId}")
     public ReturnData updateFile(@RequestHeader(value = "authorization") String token, @PathVariable("documentId") Long documentId,
                                  @RequestPart(value = "file", required = false) MultipartFile file, @RequestParam(value = "name", required = false) String name,
                                  @RequestParam(value = "parentId", required = false) Long parentId, @RequestParam(value = "comments", required = false) String comments){
@@ -90,7 +90,7 @@ public class DocumentController {
     /**
      * 编辑文件夹
      * */
-    @PatchMapping("/folders/{folderId}")
+    @PutMapping("/folders/{folderId}")
     public ReturnData updateFolderName(@RequestHeader(value = "authorization") String token, @PathVariable("folderId") Long folderId, @RequestBody UpdateFolderRequest request){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);

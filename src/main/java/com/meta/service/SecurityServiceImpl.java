@@ -52,10 +52,15 @@ public class SecurityServiceImpl {
                 if (ObjectUtils.isEmpty(request.getAreaCode()) || ObjectUtils.isEmpty(request.getPhone())){
                     throw new FastRunTimeException(ErrorEnum.参数不正确);
                 }
+                String sendVerificationCodeCountdownKey = RedisKeysUtil.sendVerificationCodeCountdown(request.getMethod(), request.getScenario(), request.getAreaCode() + request.getPhone());
+                if (redisUtil.hasKey(sendVerificationCodeCountdownKey)){
+                    throw new FastRunTimeException(ErrorEnum.发送验证码频率异常);
+                }
                 String validateCode = CodeUtil.getNumberCode(6);
                 smsUtil.singleSendMobileCode(request.getAreaCode(), request.getPhone(), request.getScenario(), validateCode);
                 String redisKey = RedisKeysUtil.bindingPhoneKey(request.getAreaCode(), request.getPhone(), validateCode);
                 redisUtil.setEx(redisKey, validateCode, 5, TimeUnit.MINUTES);
+                redisUtil.setEx(sendVerificationCodeCountdownKey, request.getAreaCode() + request.getPhone(), 60, TimeUnit.SECONDS);
                 break;
             case EMAIL:
                 log.info("发送邮箱验证码");

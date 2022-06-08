@@ -3,6 +3,7 @@ package com.meta.utils;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.enums.VerificationScenarioEnum;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -13,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 
+@Log4j2
 @Component
 public class SmsUtil {
 
@@ -46,9 +48,11 @@ public class SmsUtil {
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity , String.class);
             if (!HttpStatus.OK.equals(response.getStatusCode())){
+                log.info("短信验证码发送失败，code:{}", response.getStatusCode());
                 throw new FastRunTimeException(ErrorEnum.验证码发送失败);
             }
         }catch (Exception e){
+            log.info("短信验证码发送失败，message:{}", e.getMessage());
             throw new FastRunTimeException(ErrorEnum.验证码发送失败);
         }
     }
