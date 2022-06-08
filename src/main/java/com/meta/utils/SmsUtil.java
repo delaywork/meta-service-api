@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Log4j2
 @Component
@@ -42,7 +43,7 @@ public class SmsUtil {
             switch (scenario){
                 case BINDING:
                     params.add("tpl_id", BINDING_SMS_TID);
-                    params.add("tpl_value", URLEncoder.encode("#code#") + "=" + URLEncoder.encode(code));
+                    params.add("tpl_value", URLEncoder.encode("#code#", StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(code, StandardCharsets.UTF_8.name()));
                     break;
             }
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
