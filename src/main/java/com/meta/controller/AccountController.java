@@ -38,7 +38,7 @@ public class AccountController {
     }
 
     @ApiOperation("修改账户")
-    @PatchMapping("/users/{accountId}/profile")
+    @PutMapping("/users/{accountId}/profile")
     public ReturnData updateAccount(@RequestHeader("authorization") String token, @RequestBody UpdateAccountRequest request, @PathVariable("accountId") Long accountId){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
