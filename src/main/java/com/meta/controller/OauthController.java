@@ -43,7 +43,7 @@ public class OauthController {
     private TokenEndpoint tokenEndpoint;
 
     @GetMapping("/token")
-    public ReturnData token(@RequestHeader(value = "refresh_token", required = false) String refreshToken, @RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam(value = "jsCode", required = false) String jsCode,
+    public ReturnData token(@RequestParam(value = "refreshToken", required = false) String refreshToken, @RequestParam("authType") OauthGrantTypeEnum authType, @RequestParam(value = "jsCode", required = false) String jsCode,
                             @RequestParam(value = "userName", required = false) String userName, @RequestParam(value = "avatarUrl", required = false) String avatarUrl,
                             @RequestParam(value = "password", required = false) String password) throws HttpRequestMethodNotSupportedException {
         log.info("获取 token，authType:{}", authType.getOauthValue());
