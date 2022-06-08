@@ -1,5 +1,6 @@
 package com.meta.controller;
 
+import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.ReturnData;
 import com.meta.model.enums.OauthGrantTypeEnum;
@@ -65,6 +66,9 @@ public class OauthController {
             return ReturnData.success(oAuth2AccessToken);
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
+        }catch (Exception exception){
+            log.info("认证失败，message:{}", exception.getMessage());
+            return ReturnData.failed(new FastRunTimeException(ErrorEnum.认证异常));
         }
     }
 
