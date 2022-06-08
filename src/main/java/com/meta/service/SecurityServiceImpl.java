@@ -96,7 +96,7 @@ public class SecurityServiceImpl {
                 QueryWrapper<Account> accountWrapper = new QueryWrapper<>();
                 accountWrapper.lambda().eq(Account::getPhone, request.getPhone()).ne(Account::getId, request.getAccountId()).eq(Account::getDataIsDeleted, false);
                 Account phoneAccount = accountMapper.selectOne(accountWrapper);
-                if (ObjectUtils.isEmpty(phoneAccount)){
+                if (ObjectUtils.isNotEmpty(phoneAccount)){
                     throw new FastRunTimeException(ErrorEnum.该手机号已被绑定其他账号);
                 }
                 // 验证短信验证码
