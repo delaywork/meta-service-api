@@ -120,6 +120,54 @@ public class PdfUtil {
         return multipartFile;
     }
 
+    public static void manipulatePdf(String src, OutputStream outputStream, String waterText) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(src);
+        int pages = reader.getNumberOfPages();
+        PdfStamper stamper = new PdfStamper(reader, outputStream);
+        try{
+            BaseColor color = new BaseColor(0, 0, 0);
+            Font f = new Font(Font.FontFamily.HELVETICA, 20,1,color);
+            PdfContentByte over = stamper.getOverContent(3);
+            Phrase p = new Phrase(waterText, f);
+            // 计算初始x、y轴及偏移量
+            JLabel label = new JLabel();
+            label.setText(waterText);
+            FontMetrics metrics = label.getFontMetrics(label.getFont());
+            float offset = metrics.stringWidth(label.getText()) + 20;
+            float initXY = offset / 2;
+            // 设置水印透明度
+            PdfGState gs1 = new PdfGState();
+            gs1.setFillOpacity(0.05f);
+            // 每一页添加水印
+            Rectangle pageSize = null;
+            for (int i=1; i<=pages; i++){
+                over = stamper.getOverContent(i);
+                over.saveState();
+                over.setGState(gs1);
+                pageSize = reader.getPageSize(i);
+                float width = pageSize.getWidth();
+                // 水印信息过长，导致偏移量过大，进行处理
+                float xOffset = offset, yOffset = offset;
+                float initX = initXY, initY = initXY;
+                float ratio = (offset / width);
+                width = width*2;
+                xOffset = offset/(int)((ratio+1)*2);
+                initX = width/2*-1;
+                // y轴偏移
+                for (float y=initY; y<pageSize.getHeight()*1.5; y+=yOffset){
+                    // x轴偏移
+                    for (float x=initX; x<width; x+=xOffset){
+                        ColumnText.showTextAligned(over, Element.ALIGN_CENTER, p, x, y, 45);
+                    }
+                }
+                over.restoreState();
+            }
+        }finally {
+            stamper.close();
+            reader.close();
+        }
+    }
+
     private static FileItem createFileItem(File file) {
         FileItemFactory factory = new DiskFileItemFactory(16, null);
         FileItem item = factory.createItem("textField", "text/plain", true, file.getName());

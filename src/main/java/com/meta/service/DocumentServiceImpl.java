@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -469,20 +470,30 @@ public class DocumentServiceImpl {
     /**
      * 根据id查询文件
      * */
-    public Document getFile(Long dataRoomId, Long accountId, Long tenantId){
+    public Document getFile(Long documentId, Long accountId){
+        if (ObjectUtils.isEmpty(documentId) || ObjectUtils.isEmpty(accountId)){
+            throw new FastRunTimeException(ErrorEnum.参数不正确);
+        }
         QueryWrapper<Document> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(Document::getId,dataRoomId).eq(Document::getType, DocumentTypeEnum.PDF).eq(Document::getDataIsDeleted, false);
+        wrapper.lambda().eq(Document::getId,documentId).eq(Document::getType, DocumentTypeEnum.PDF).eq(Document::getDataIsDeleted, false);
         Document document = documentMapper.selectOne(wrapper);
         if (ObjectUtils.isEmpty(document)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (!document.getTenantId().equals(tenantId)){
+        if (!document.getOperationAccountId().equals(accountId)){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
         document.setUrl(qiuUtil.downloadPrivate(document.getUrl()));
         return document;
+    }
+
+    public static void main(String[] args) {
+        BigDecimal bigDecimal = BigDecimal.ONE;
+        System.out.println(bigDecimal.toString());
+        bigDecimal.add(BigDecimal.ONE);
+        System.out.println(bigDecimal.toString());
     }
 
     /**
@@ -492,9 +503,9 @@ public class DocumentServiceImpl {
     /**
      * 下载文件
      * */
-    public String downloadPrivate(Long fileId, Long accountId, Long tenantId){
+    public String downloadPrivate(Long fileId, Long accountId){
         // 查询文件
-        Document file = this.getFile(fileId, accountId, tenantId);
+        Document file = this.getFile(fileId, accountId);
         if (StringUtils.isEmpty(file.getUrl())){
             // 文件不存在有效地址
             throw new FastRunTimeException(ErrorEnum.文件不存在有效地址);

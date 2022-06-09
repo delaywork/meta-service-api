@@ -1,29 +1,41 @@
 package com.meta.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.itextpdf.text.DocumentException;
 import com.meta.model.*;
+import com.meta.model.pojo.Account;
 import com.meta.model.pojo.Document;
 import com.meta.model.request.*;
 import com.meta.model.response.QueryDocumentsResponse;
+import com.meta.service.AccountServiceImpl;
 import com.meta.service.DocumentServiceImpl;
-import com.meta.utils.JWTUtil;
-import com.meta.utils.OauthJWTUtil;
-import com.meta.utils.ParamsUtil;
+import com.meta.utils.*;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 
+@Log4j2
 @RestController
 public class DocumentController {
 
     @Resource
-    private DocumentServiceImpl dataRoomService;
+    private DocumentServiceImpl documentService;
+    @Resource
+    private AccountServiceImpl accountService;
     @Resource
     private OauthJWTUtil oauthJWTUtil;
 
@@ -42,7 +54,7 @@ public class DocumentController {
             addDocumentRequest.setAccountId(claims.getAccountId());
             addDocumentRequest.setName(name);
             addDocumentRequest.setComments(comments);
-            dataRoomService.addFile(addDocumentRequest);
+            documentService.addFile(addDocumentRequest);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -57,7 +69,7 @@ public class DocumentController {
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             request.setAccountId(claims.getAccountId());
-            dataRoomService.addFolder(request);
+            documentService.addFolder(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -80,7 +92,7 @@ public class DocumentController {
                     .comments(comments)
                     .file(file)
                     .build();
-            dataRoomService.updateFile(request);
+            documentService.updateFile(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -96,7 +108,7 @@ public class DocumentController {
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             request.setAccountId(claims.getAccountId());
             request.setFolderId(folderId);
-            dataRoomService.updateFolder(request);
+            documentService.updateFolder(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -108,7 +120,7 @@ public class DocumentController {
     public ReturnData deleteDataRoom(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.deleteDataRoom(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId());
+            documentService.deleteDataRoom(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -120,7 +132,7 @@ public class DocumentController {
     public ReturnData<Page<Document>> pageDelete(@RequestBody PageDeleteDataRoomRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.pageDelete(request, biteClaims.getTenantId()));
+            return ReturnData.success(documentService.pageDelete(request, biteClaims.getTenantId()));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -131,7 +143,7 @@ public class DocumentController {
     public ReturnData restoreDelete(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.restoreDelete(request.getId(), biteClaims.getTenantId());
+            documentService.restoreDelete(request.getId(), biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -144,7 +156,7 @@ public class DocumentController {
     public ReturnData completeDelete(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            dataRoomService.completeDelete(request.getId(), biteClaims.getTenantId());
+            documentService.completeDelete(request.getId(), biteClaims.getTenantId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -152,7 +164,7 @@ public class DocumentController {
     }
 
     /**
-     * 查询文件
+     * 查询文件夹下的文件
      * */
     @GetMapping("/folders/{folderId}/documents")
     public ReturnData<QueryDocumentsResponse> queryFolders(@RequestHeader("authorization") String token, @PathVariable("folderId") Long folderId,
@@ -175,9 +187,46 @@ public class DocumentController {
                 List<Order> orders = ParamsUtil.getOrderParams(sort);
                 request.setOrders(orders);
             }
-            return ReturnData.success(dataRoomService.queryFolder(request));
+            return ReturnData.success(documentService.queryFolder(request));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    /**
+     * 查询文件
+     * */
+    @GetMapping("/documents/{documentId}")
+    public void getDocument(HttpServletResponse response, @RequestHeader("authorization") String token, @PathVariable("documentId") Long documentId) throws IOException {
+        try{
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            Document document = documentService.getFile(documentId, claims.getAccountId());
+            if (ObjectUtils.isNotEmpty(document)) {
+                String downloadFileName = document.getName();
+                downloadFileName = URLEncoder.encode(downloadFileName, "utf-8").replace("+", "%20");
+                response.setHeader("content-disposition", "attachment;filename*=UTF-8''" + downloadFileName);
+                response.setCharacterEncoding("utf-8");
+                // 把结果写进 response
+                StringBuilder watermarkTextBuilder = new StringBuilder();
+                Account account = accountService.getAccountById(claims.getAccountId());
+                watermarkTextBuilder.append(account.getName());
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                if (ObjectUtils.isNotEmpty(account.getTimeZone())){
+                    String data = TimeZoneFormatUtil.format(timestamp, account.getTimeZone());
+                    watermarkTextBuilder.append(" ").append(data);
+                }else{
+                    String data = TimeZoneFormatUtil.format(timestamp);
+                    watermarkTextBuilder.append(" ").append(data);
+                }
+                PdfUtil.manipulatePdf(document.getUrl(), response.getOutputStream(), watermarkTextBuilder.toString());
+            }
+        }catch (FastRunTimeException fastRunTimeException){
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(JSONObject.toJSONString(ReturnData.failed(fastRunTimeException)));
+        }catch (Exception exception){
+            log.info("view a document is error, message:{}", exception.getMessage());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(JSONObject.toJSONString(ReturnData.failed(new FastRunTimeException(ErrorEnum.网络异常))));
         }
     }
 
@@ -187,7 +236,7 @@ public class DocumentController {
         try{
             // TODO 查询历史版本
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.getFile(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId()));
+            return ReturnData.success(documentService.getFile(request.getId(), biteClaims.getAccountId()));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -198,7 +247,7 @@ public class DocumentController {
     public ReturnData<String> downloadPrivate(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
         try{
             BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(dataRoomService.downloadPrivate(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId()));
+            return ReturnData.success(documentService.downloadPrivate(request.getId(), biteClaims.getAccountId()));
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }

@@ -71,9 +71,15 @@ public class QiuUtil {
     }
 
     // 下载私有空间文件
-    public String downloadPrivate(String baseUrl){
-        Auth auth = Auth.create(QINIU_AK, QINIU_SK);
-        String downloadUrl = auth.privateDownloadUrl(baseUrl);
+    public String downloadPrivate(String baseUrl) {
+        String downloadUrl = null;
+        try{
+            Auth auth = Auth.create(QINIU_AK, QINIU_SK);
+            downloadUrl = auth.privateDownloadUrl(baseUrl, 86400L);
+            log.info("downloadPrivate ---> {}", downloadUrl);
+        }catch (Exception e){
+            log.info("downloadPrivate ---> error, message:{}", e.getMessage());
+        }
         return downloadUrl;
     }
 
