@@ -18,14 +18,13 @@ public class UserOauthVo implements UserDetails {
     private String username;
     private String password;
     private Boolean enabled;
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Long accountId;
+    private String accountId;
     private String accountName;
 
     private Collection<SimpleGrantedAuthority> authorities;
 
     public UserOauthVo(Long accountId, String accountName, String username, String password, Boolean enabled,Collection<SimpleGrantedAuthority> authorities) {
-        this.setAccountId(accountId);
+        this.setAccountId(accountId.toString());
         this.setAccountName(accountName);
         this.setUsername(username);
         this.setPassword(password);
