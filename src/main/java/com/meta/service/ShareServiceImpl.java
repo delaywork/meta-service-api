@@ -48,7 +48,7 @@ public class ShareServiceImpl {
         switch (request.getSourceType()){
             case PDF:
                 // 查询文件
-                Document file = dataRoomService.getFile(request.getSourceId(), accountId, tenantId);
+                Document file = dataRoomService.getFile(request.getSourceId(), accountId);
                 // 补充 share 信息
                 share.setSourceId(file.getId());
                 share.setSourceType(ShareSourceTypeEnum.PDF);
