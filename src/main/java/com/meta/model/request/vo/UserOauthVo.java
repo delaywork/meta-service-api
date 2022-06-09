@@ -1,5 +1,6 @@
 package com.meta.model.request.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +18,7 @@ public class UserOauthVo implements UserDetails {
     private String username;
     private String password;
     private Boolean enabled;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long accountId;
     private String accountName;
 
