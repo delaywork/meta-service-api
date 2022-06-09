@@ -489,13 +489,6 @@ public class DocumentServiceImpl {
         return document;
     }
 
-    public static void main(String[] args) {
-        BigDecimal bigDecimal = BigDecimal.ONE;
-        System.out.println(bigDecimal.toString());
-        bigDecimal.add(BigDecimal.ONE);
-        System.out.println(bigDecimal.toString());
-    }
-
     /**
      * 列表查询文件/文件夹
      * */
