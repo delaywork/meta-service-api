@@ -135,7 +135,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         return (accessToken, authentication) -> {
             Map<String, Object> additionalInfo = new HashMap();
             UserOauthVo userOauthVo = (UserOauthVo) authentication.getUserAuthentication().getPrincipal();
-            additionalInfo.put("accountId", Long.valueOf(userOauthVo.getAccountId()));
+            additionalInfo.put("accountId", userOauthVo.getAccountId());
             additionalInfo.put("accountName", userOauthVo.getAccountName());
             ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
             return accessToken;
