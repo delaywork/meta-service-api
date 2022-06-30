@@ -26,5 +26,12 @@ public class RedisKeysUtil {
         return "SEND_VERIFICATION_CODE_COUNTDOWN:" + verificationMethod.getValue() + ":" + verificationScenario.getValue() + ":" + value;
     }
 
+    /**
+     * 阅读中记录
+     */
+    public static String readRecordKey(Long sourceId, Long accountId){
+        return "READ_RECORD:" + sourceId + ":" + accountId;
+    }
+
 
 }

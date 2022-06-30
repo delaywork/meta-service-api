@@ -115,12 +115,14 @@ public class DocumentController {
         }
     }
 
-    @ApiOperation("删除文件/文件夹")
-    @PostMapping("/delete/data-room")
-    public ReturnData deleteDataRoom(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
+    /**
+     * 删除文件
+     * */
+    @DeleteMapping("/documents/{documentId}")
+    public ReturnData deleteDataRoom(@RequestHeader(value = "authorization") String token, @RequestPart(value = "documentId") Long documentId){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            documentService.deleteDataRoom(request.getId(), biteClaims.getAccountId(), biteClaims.getTenantId());
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            documentService.deleteDataRoom(documentId, claims.getAccountId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
@@ -138,12 +140,14 @@ public class DocumentController {
         }
     }
 
-    @ApiOperation("恢复删除")
-    @PostMapping("/restore/delete")
-    public ReturnData restoreDelete(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
+    /**
+     * 撤销删除
+     * */
+    @PostMapping("/rollback/documents/{documentId}")
+    public ReturnData restoreDelete(@RequestHeader(value = "authorization") String token, @RequestPart(value = "documentId") Long documentId){
         try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            documentService.restoreDelete(request.getId(), biteClaims.getTenantId());
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            documentService.restoreDelete(documentId, claims.getAccountId());
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);

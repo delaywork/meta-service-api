@@ -8,9 +8,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
 import com.meta.model.enums.AccountTypeEnum;
 import com.meta.model.enums.ShareSourceTypeEnum;
+import com.meta.model.enums.SourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
+
+import java.sql.Timestamp;
 
 
 /**
@@ -34,23 +37,27 @@ public class ReadSchedule extends BaseModel {
 
     // 阅读源类型
     @TableField(value = "source_type")
-    private ShareSourceTypeEnum sourceType;
+    private SourceTypeEnum sourceType;
 
     // 首次阅读时间
     @TableField(value = "first_time")
-    private Long firstTime;
+    private Timestamp firstTime;
 
     // 最后阅读时间
     @TableField(value = "last_time")
-    private Long lastTime;
+    private Timestamp lastTime;
 
     // 阅读时长 (单位：秒)
     @TableField(value = "read_time")
     private Long readTime;
 
-    // 当前阅读页
-    @TableField(value = "current_page")
-    private Integer currentPage;
+    // 当前阅读页码
+    @TableField(value = "page_index")
+    private Long pageIndex;
+
+    // 当前阅读内容
+    @TableField(value = "context_index")
+    private String contextIndex;
 
     // 阅读人员 id
     @TableField(value = "account_id")

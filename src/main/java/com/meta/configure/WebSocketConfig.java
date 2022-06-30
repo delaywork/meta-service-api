@@ -17,7 +17,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry
-                .addHandler(readRecordHandler, "/read/record")//websocket连接地址 ws://localhost:port/read/record
+                .addHandler(readRecordHandler, "/read-record")//websocket连接地址 ws://localhost:port/read-record
                 //允许跨域
                 .setAllowedOrigins("*");
     }

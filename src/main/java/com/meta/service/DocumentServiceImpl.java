@@ -275,14 +275,14 @@ public class DocumentServiceImpl {
      * 删除文件/文件夹
      * */
     @Transactional
-    public void deleteDataRoom(Long dataRoomId, Long accountId, Long tenantId){
+    public void deleteDataRoom(Long dataRoomId, Long accountId){
         // 查询dataRoom（如果是文件夹还要遍历删除子文件夹和文件）
         Document document = documentMapper.selectById(dataRoomId);
         if (ObjectUtils.isEmpty(document)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (document.getTenantId() != tenantId){
+        if (document.getOperationAccountId() != accountId){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
@@ -339,17 +339,17 @@ public class DocumentServiceImpl {
      * 恢复删除
      * */
     @Transactional
-    public void restoreDelete(Long dataRoomId, Long tenantId){
+    public void restoreDelete(Long dataRoomId, Long accountId){
         // 查询被删除的文件是否属于这个tenant
         QueryWrapper<Document> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(Document::getId, dataRoomId).eq(Document::getDataIsDeleted, true).eq(Document::getTenantId, tenantId);
+        wrapper.lambda().eq(Document::getId, dataRoomId).eq(Document::getDataIsDeleted, true).eq(Document::getOperationAccountId, accountId);
         Document document = documentMapper.selectOne(wrapper);
         if (ObjectUtils.isEmpty(document)){
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
         // 判断父级文件夹是否存在
         QueryWrapper<Document> parentDataRoomWrapper = new QueryWrapper<>();
-        parentDataRoomWrapper.lambda().eq(Document::getId, document.getParentId()).eq(Document::getDataIsDeleted, false).eq(Document::getTenantId, tenantId);
+        parentDataRoomWrapper.lambda().eq(Document::getId, document.getParentId()).eq(Document::getDataIsDeleted, false).eq(Document::getOperationAccountId, accountId);
         Document parentDocument = documentMapper.selectOne(parentDataRoomWrapper);
         if (ObjectUtils.isEmpty(parentDocument)){
             throw new FastRunTimeException(ErrorEnum.原有父级文件夹不存在);
