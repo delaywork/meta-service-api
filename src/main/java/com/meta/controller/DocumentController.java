@@ -63,6 +63,29 @@ public class DocumentController {
     }
 
     /**
+     * WeChat 新增文件
+     * */
+    @PostMapping("/wx/documents")
+    public ReturnData wxAddFile(@RequestParam(value = "authorization") String token, @RequestPart("file") MultipartFile file,
+                              @RequestParam("parentId") Long parentId, @RequestParam(value = "name",required = false) String name,
+                              @RequestParam(value = "comments",required = false) String comments){
+        try{
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            AddDocumentRequest addDocumentRequest = new AddDocumentRequest();
+            addDocumentRequest.setParentId(parentId);
+            addDocumentRequest.setDocument(file);
+            addDocumentRequest.setAccountId(claims.getAccountId());
+            addDocumentRequest.setName(name);
+            addDocumentRequest.setComments(comments);
+            documentService.addFile(addDocumentRequest);
+            return ReturnData.success();
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+
+    /**
      * 新增文件夹
      * */
     @PostMapping("/folders")
