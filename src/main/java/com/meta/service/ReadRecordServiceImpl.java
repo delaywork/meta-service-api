@@ -1,7 +1,10 @@
 package com.meta.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.google.common.collect.ObjectArrays;
 import com.meta.mapper.ReadScheduleMapper;
 import com.meta.mapper.ReadTimesMapper;
 import com.meta.model.ErrorEnum;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Log4j2
@@ -88,20 +92,24 @@ public class ReadRecordServiceImpl {
         }else{
             log.info("更新阅读记录, SourceId:{}, AccountId:{}, PageIndex:{}, Times:{}", request.getSourceId(), request.getAccountId(), request.getPageIndex(), request.getTimes());
             List<ReadTimeDetail> readTimeDetails = readTime.getDetail();
+            AtomicReference<Boolean> flag = new AtomicReference<>(true);
             readTimeDetails.forEach((readTimeDetail) -> {
                 if (readTimeDetail.getPageIndex() == request.getPageIndex()){
                     readTimeDetail.setReadTime(readTimeDetail.getReadTime()+request.getTimes());
+                    flag.set(false);
                 }
             });
+            if (flag.get()){
+                ReadTimeDetail readTimeDetail = ReadTimeDetail.builder().readTime(request.getTimes()).pageIndex(request.getPageIndex()).build();
+                readTimeDetails.add(readTimeDetail);
+            }
             UpdateWrapper<ReadTime> readTimeUpdateWrapper = new UpdateWrapper<>();
+
             readTimeUpdateWrapper.lambda().eq(ReadTime::getId, readTime.getId())
-                    .set(ReadTime::getDetail, readTimeDetails)
+                    .set(ReadTime::getDetail, JSON.toJSONString(readTimeDetails))
                     .set(ReadTime::getReadTime, readTime.getReadTime()+request.getTimes());
+            readTimesMapper.update(new ReadTime(), readTimeUpdateWrapper);
         }
     }
-
-
-
-
 
 }
