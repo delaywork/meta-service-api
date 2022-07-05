@@ -66,6 +66,25 @@ CREATE TABLE if not exists document
         primary key (id)
 );
 
+CREATE TABLE if not exists document_undo_log
+(
+    id bigint not null,
+    document_operation_type varchar(128) null comment '操作类型',
+    document_id bigint null comment '文件 id',
+    document_parent_id bigint null comment '父节点 id',
+    document_type varchar(64) not null comment '类型',
+    document_name varchar(255) null comment '名称',
+    document_comments varchar(2048) null comment '描述',
+    document_cloud varchar(255) null comment '云',
+    document_url varchar(255) null comment '文件地址（类型为"文件夹"则为空）',
+    operation_account_id bigint null comment '操作人员id',
+    data_create_time timestamp null,
+    data_update_time timestamp null,
+    data_is_deleted tinyint default 0 null,
+    constraint document_undo_log
+        primary key (id)
+);
+
 CREATE TABLE if not exists info
 (
     id bigint not null,

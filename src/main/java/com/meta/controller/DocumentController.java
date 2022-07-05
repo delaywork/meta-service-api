@@ -2,12 +2,14 @@ package com.meta.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.itextpdf.text.DocumentException;
 import com.meta.model.*;
 import com.meta.model.pojo.Account;
 import com.meta.model.pojo.Document;
 import com.meta.model.request.*;
+import com.meta.model.response.DeleteDocumentResponse;
 import com.meta.model.response.QueryDocumentsResponse;
+import com.meta.model.response.UpdateFileResponse;
+import com.meta.model.response.UpdateFolderResponse;
 import com.meta.service.AccountServiceImpl;
 import com.meta.service.DocumentServiceImpl;
 import com.meta.utils.*;
@@ -15,7 +17,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -80,9 +81,9 @@ public class DocumentController {
      * 编辑文件
      * */
     @PutMapping("/documents/{documentId}")
-    public ReturnData updateFile(@RequestHeader(value = "authorization") String token, @PathVariable("documentId") Long documentId,
-                                 @RequestPart(value = "file", required = false) MultipartFile file, @RequestParam(value = "name", required = false) String name,
-                                 @RequestParam(value = "parentId", required = false) Long parentId, @RequestParam(value = "comments", required = false) String comments){
+    public ReturnData<UpdateFileResponse> updateFile(@RequestHeader(value = "authorization") String token, @PathVariable("documentId") Long documentId,
+                                                     @RequestPart(value = "file", required = false) MultipartFile file, @RequestParam(value = "name", required = false) String name,
+                                                     @RequestParam(value = "parentId", required = false) Long parentId, @RequestParam(value = "comments", required = false) String comments){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             UpdateFileRequest request = UpdateFileRequest.builder().accountId(claims.getAccountId())
@@ -92,8 +93,8 @@ public class DocumentController {
                     .comments(comments)
                     .file(file)
                     .build();
-            documentService.updateFile(request);
-            return ReturnData.success();
+            UpdateFileResponse response = documentService.updateFile(request);
+            return ReturnData.success(response);
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -103,13 +104,13 @@ public class DocumentController {
      * 编辑文件夹
      * */
     @PutMapping("/folders/{folderId}")
-    public ReturnData updateFolderName(@RequestHeader(value = "authorization") String token, @PathVariable("folderId") Long folderId, @RequestBody UpdateFolderRequest request){
+    public ReturnData<UpdateFolderResponse> updateFolderName(@RequestHeader(value = "authorization") String token, @PathVariable("folderId") Long folderId, @RequestBody UpdateFolderRequest request){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             request.setAccountId(claims.getAccountId());
             request.setFolderId(folderId);
-            documentService.updateFolder(request);
-            return ReturnData.success();
+            UpdateFolderResponse response = documentService.updateFolder(request);
+            return ReturnData.success(response);
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -119,11 +120,11 @@ public class DocumentController {
      * 删除文件
      * */
     @DeleteMapping("/documents/{documentId}")
-    public ReturnData deleteDataRoom(@RequestHeader(value = "authorization") String token, @RequestPart(value = "documentId") Long documentId){
+    public ReturnData<DeleteDocumentResponse> deleteDocument(@RequestHeader(value = "authorization") String token, @RequestPart(value = "documentId") Long documentId){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
-            documentService.deleteDataRoom(documentId, claims.getAccountId());
-            return ReturnData.success();
+            DeleteDocumentResponse response = documentService.deleteDocument(documentId, claims.getAccountId());
+            return ReturnData.success(response);
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);
         }
@@ -141,13 +142,14 @@ public class DocumentController {
     }
 
     /**
-     * 撤销删除
+     * 撤销
      * */
-    @PostMapping("/rollback/documents/{documentId}")
-    public ReturnData restoreDelete(@RequestHeader(value = "authorization") String token, @RequestPart(value = "documentId") Long documentId){
+    @PostMapping("/undo-log/{undoLogId}")
+    public ReturnData restoreDelete(@RequestHeader(value = "authorization") String token, @RequestPart(value = "undoLogId") Long undoLogId){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
-            documentService.restoreDelete(documentId, claims.getAccountId());
+            RollbackByUndoLogRequest request = RollbackByUndoLogRequest.builder().undoLogId(undoLogId).accountId(claims.getAccountId()).build();
+            documentService.rollbackByUndoLog(request);
             return ReturnData.success();
         }catch (FastRunTimeException fastRunTimeException){
             return ReturnData.failed(fastRunTimeException);

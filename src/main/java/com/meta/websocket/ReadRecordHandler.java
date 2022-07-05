@@ -59,7 +59,7 @@ public class ReadRecordHandler extends AbstractWebSocketHandler {
             throw new RuntimeException("PAGE_INDEX_ERROR");
         }
         log.info("获取 redis 存在的阅读记录");
-        String readRecordKey = RedisKeysUtil.readRecordKey(request.getSourceId(), claims.getAccountId());
+        String readRecordKey = RedisKeysUtil.readRecordKey(session.getId(), request.getSourceId(), claims.getAccountId());
         Map<Object, Object> readRecordMap = redisUtil.hGetAll(readRecordKey);
         if (ObjectUtils.isNotEmpty(readRecordMap)){
             log.info("redis 中存在阅读记录");
@@ -97,17 +97,29 @@ public class ReadRecordHandler extends AbstractWebSocketHandler {
         }
     }
 
+    /**
+     * 发生异常关闭连接
+     * */
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
         log.error("发生异常:{}", exception.getMessage());
         webSocketService.sendMsg(session, exception.getMessage());
+        log.info("删除{}次连接缓存", session.getId());
+        String readRecordLikeKey = RedisKeysUtil.readRecordLikeKey(session.getId());
+        redisUtil.deleteAll(readRecordLikeKey);
+        log.info("关闭 websocket 连接, session:{}", session.getId());
         WebSocketSessionManager.removeAndClose(session.getId());
     }
 
+    /**
+     * socket 连接关闭后触发
+     * */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        // socket连接关闭后触发
-        log.info("关闭websocket连接");
+        log.info("删除{}次连接缓存", session.getId());
+        String readRecordLikeKey = RedisKeysUtil.readRecordLikeKey(session.getId());
+        redisUtil.deleteAll(readRecordLikeKey);
+        log.info("关闭 websocket 连接, session:{}", session.getId());
         WebSocketSessionManager.removeAndClose(session.getId());
     }
 
