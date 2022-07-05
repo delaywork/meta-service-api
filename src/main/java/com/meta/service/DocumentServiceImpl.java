@@ -159,6 +159,7 @@ public class DocumentServiceImpl {
             DocumentUndoLog documentUndoLog = new DocumentUndoLog();
             documentUndoLog.setDocumentId(request.getFolderId());
             documentUndoLog.setDocumentOperationType(DocumentOperationTypeEnum.MOVE);
+            documentUndoLog.setDocumentType(document.getType());
             documentUndoLog.setOperationAccountId(request.getAccountId());
             documentUndoLog.setDocumentParentId(document.getParentId());
             documentUndoLogMapper.insert(documentUndoLog);
@@ -209,6 +210,7 @@ public class DocumentServiceImpl {
             DocumentUndoLog documentUndoLog = new DocumentUndoLog();
             documentUndoLog.setDocumentId(request.getDocumentId());
             documentUndoLog.setDocumentOperationType(DocumentOperationTypeEnum.MOVE);
+            documentUndoLog.setDocumentType(document.getType());
             documentUndoLog.setOperationAccountId(request.getAccountId());
             documentUndoLog.setDocumentParentId(document.getParentId());
             documentUndoLogMapper.insert(documentUndoLog);
@@ -312,7 +314,7 @@ public class DocumentServiceImpl {
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (document.getOperationAccountId() != accountId){
+        if (!document.getOperationAccountId().equals(accountId)){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
@@ -334,6 +336,7 @@ public class DocumentServiceImpl {
         // 添加删除回滚记录
         DocumentUndoLog documentUndoLog = new DocumentUndoLog();
         documentUndoLog.setDocumentId(documentId);
+        documentUndoLog.setDocumentType(document.getType());
         documentUndoLog.setDocumentOperationType(DocumentOperationTypeEnum.DELETE);
         documentUndoLog.setOperationAccountId(accountId);
         documentUndoLogMapper.insert(documentUndoLog);

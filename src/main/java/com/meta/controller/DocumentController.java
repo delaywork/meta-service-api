@@ -120,7 +120,7 @@ public class DocumentController {
      * 删除文件
      * */
     @DeleteMapping("/documents/{documentId}")
-    public ReturnData<DeleteDocumentResponse> deleteDocument(@RequestHeader(value = "authorization") String token, @RequestPart(value = "documentId") Long documentId){
+    public ReturnData<DeleteDocumentResponse> deleteDocument(@RequestHeader(value = "authorization") String token, @PathVariable(value = "documentId") Long documentId){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             DeleteDocumentResponse response = documentService.deleteDocument(documentId, claims.getAccountId());
@@ -145,7 +145,7 @@ public class DocumentController {
      * 撤销
      * */
     @PostMapping("/undo-log/{undoLogId}")
-    public ReturnData restoreDelete(@RequestHeader(value = "authorization") String token, @RequestPart(value = "undoLogId") Long undoLogId){
+    public ReturnData restoreDelete(@RequestHeader(value = "authorization") String token, @PathVariable(value = "undoLogId") Long undoLogId){
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             RollbackByUndoLogRequest request = RollbackByUndoLogRequest.builder().undoLogId(undoLogId).accountId(claims.getAccountId()).build();
