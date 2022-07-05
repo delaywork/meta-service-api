@@ -66,6 +66,25 @@ CREATE TABLE if not exists document
         primary key (id)
 );
 
+CREATE TABLE if not exists document_undo_log
+(
+    id bigint not null,
+    document_operation_type varchar(128) null comment '操作类型',
+    document_id bigint null comment '文件 id',
+    document_parent_id bigint null comment '父节点 id',
+    document_type varchar(64) not null comment '类型',
+    document_name varchar(255) null comment '名称',
+    document_comments varchar(2048) null comment '描述',
+    document_cloud varchar(255) null comment '云',
+    document_url varchar(255) null comment '文件地址（类型为"文件夹"则为空）',
+    operation_account_id bigint null comment '操作人员id',
+    data_create_time timestamp null,
+    data_update_time timestamp null,
+    data_is_deleted tinyint default 0 null,
+    constraint document_undo_log
+        primary key (id)
+);
+
 CREATE TABLE if not exists info
 (
     id bigint not null,
@@ -78,4 +97,42 @@ CREATE TABLE if not exists info
     constraint info
         primary key (id)
 );
+
+CREATE TABLE if not exists read_times
+(
+    id bigint not null,
+    source_id bigint null comment '阅读源 id',
+    source_type varchar(128) null comment '阅读源类型',
+    start_time timestamp null comment '开始阅读时间',
+    read_time bigint default 0 comment '阅读时长 (单位：秒)',
+    detail json null comment '阅读页码时长',
+    web_socket_session_id varchar(128) null comment '关联的长链接',
+    account_id bigint null comment '阅读人员',
+    account_type varchar(128) null comment '阅读人员类型',
+    data_create_time timestamp null,
+    data_update_time timestamp null,
+    data_is_deleted tinyint default 0 null,
+    constraint read_times
+        primary key (id)
+);
+
+CREATE TABLE if not exists read_schedule
+(
+    id bigint not null,
+    source_id bigint null comment '阅读源 id',
+    source_type varchar(128) null comment '阅读源类型',
+    first_time timestamp null comment '首次阅读时间',
+    last_time timestamp null comment '最后阅读时间',
+    read_time bigint default 0 comment '阅读时长 (单位：秒)',
+    page_index bigint null comment '当前阅读页码',
+    context_index varchar(1024) null comment '当前阅读内容',
+    account_id bigint null comment '阅读人员',
+    account_type varchar(128) null comment '阅读人员类型',
+    data_create_time timestamp null,
+    data_update_time timestamp null,
+    data_is_deleted tinyint default 0 null,
+    constraint read_schedule
+        primary key (id)
+);
+
 

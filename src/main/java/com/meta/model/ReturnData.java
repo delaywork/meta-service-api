@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class ReturnData<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private static final String SUCCESS = "C-00000";
+    private static final String SUCCESS = "SUCCESS";
 
     private T data;
     private String code;

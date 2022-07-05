@@ -4,15 +4,21 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.meta.mapper.DocumentMapper;
+import com.meta.mapper.DocumentUndoLogMapper;
 import com.meta.model.ErrorEnum;
 import com.meta.model.FastRunTimeException;
 import com.meta.model.enums.DocumentCloudEnum;
+import com.meta.model.enums.DocumentOperationTypeEnum;
 import com.meta.model.enums.DocumentTypeEnum;
 import com.meta.model.enums.OrderEnum;
 import com.meta.model.pojo.Document;
+import com.meta.model.pojo.DocumentUndoLog;
 import com.meta.model.pojo.VersionHistory;
 import com.meta.model.request.*;
+import com.meta.model.response.DeleteDocumentResponse;
 import com.meta.model.response.QueryDocumentsResponse;
+import com.meta.model.response.UpdateFileResponse;
+import com.meta.model.response.UpdateFolderResponse;
 import com.meta.utils.QiuUtil;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +37,13 @@ import java.util.List;
 @Service
 public class DocumentServiceImpl {
 
-    @Autowired
+    @Resource
     private VersionHistoryServiceImpl versionHistoryService;
-    @Autowired
+    @Resource
     private DocumentMapper documentMapper;
-    @Autowired
+    @Resource
+    private DocumentUndoLogMapper documentUndoLogMapper;
+    @Resource
     private QiuUtil qiuUtil;
 
     // 根目录
@@ -129,7 +138,8 @@ public class DocumentServiceImpl {
      * 修改文件夹
      * */
     @Transactional
-    public void updateFolder(UpdateFolderRequest request){
+    public UpdateFolderResponse updateFolder(UpdateFolderRequest request){
+        UpdateFolderResponse response = new UpdateFolderResponse();
         log.info("修改文件夹信息, accountId:{}, folderId:{}, parentId:{}, name:{}", request.getAccountId(), request.getFolderId(), request.getParentId(), request.getName());
         if (ObjectUtils.isEmpty(request.getFolderId()) || ObjectUtils.isEmpty(request.getAccountId())){
             throw new FastRunTimeException(ErrorEnum.参数不正确);
@@ -145,6 +155,16 @@ public class DocumentServiceImpl {
         }
         // 编辑文件夹
         if (ObjectUtils.isNotEmpty(request.getParentId())){
+            // 添加移动回滚记录
+            DocumentUndoLog documentUndoLog = new DocumentUndoLog();
+            documentUndoLog.setDocumentId(request.getFolderId());
+            documentUndoLog.setDocumentOperationType(DocumentOperationTypeEnum.MOVE);
+            documentUndoLog.setDocumentType(document.getType());
+            documentUndoLog.setOperationAccountId(request.getAccountId());
+            documentUndoLog.setDocumentParentId(document.getParentId());
+            documentUndoLogMapper.insert(documentUndoLog);
+            response.setDocumentUndoLogId(documentUndoLog.getId());
+            // 移动文件夹
             log.info("执行移动文件目录操作");
             this.moveDocument(MoveDocumentRequest.builder().folderId(request.getFolderId())
                     .targetFolderId(request.getParentId())
@@ -165,13 +185,15 @@ public class DocumentServiceImpl {
         }
         updateWrapper.lambda().set(Document::getOperationAccountId, request.getAccountId());
         documentMapper.update(Document.builder().build(), updateWrapper);
+        return response;
     }
 
     /**
      * 修改文件（将历史记录转移到 VersionHistory）
      * */
     @Transactional
-    public void updateFile(UpdateFileRequest request){
+    public UpdateFileResponse updateFile(UpdateFileRequest request){
+        UpdateFileResponse response = new UpdateFileResponse();
         log.info("编辑文件, fileId:{}, accountId:{}, name:{}, parentId:{}", request.getDocumentId(), request.getAccountId(), request.getName(), request.getParentId());
         if (ObjectUtils.isEmpty(request.getDocumentId()) || ObjectUtils.isEmpty(request.getAccountId())){
             throw new FastRunTimeException(ErrorEnum.参数不正确);
@@ -184,6 +206,15 @@ public class DocumentServiceImpl {
         }
         // 编辑文件
         if (ObjectUtils.isNotEmpty(request.getParentId())){
+            // 添加移动回滚记录
+            DocumentUndoLog documentUndoLog = new DocumentUndoLog();
+            documentUndoLog.setDocumentId(request.getDocumentId());
+            documentUndoLog.setDocumentOperationType(DocumentOperationTypeEnum.MOVE);
+            documentUndoLog.setDocumentType(document.getType());
+            documentUndoLog.setOperationAccountId(request.getAccountId());
+            documentUndoLog.setDocumentParentId(document.getParentId());
+            documentUndoLogMapper.insert(documentUndoLog);
+            response.setDocumentUndoLogId(documentUndoLog.getId());
             log.info("执行移动文件操作");
             this.moveDocument(MoveDocumentRequest.builder().folderId(request.getDocumentId())
                     .targetFolderId(request.getParentId())
@@ -212,6 +243,7 @@ public class DocumentServiceImpl {
 //                .operationAccountId(accountId).name(document.getName()).type(document.getType()).url(document.getUrl()).cloud(document.getCloud()).build();
 //        versionHistoryService.add(versionHistory);
         documentMapper.update(Document.builder().build(), updateWrapper);
+        return response;
     }
 
     /**
@@ -229,7 +261,7 @@ public class DocumentServiceImpl {
         }
         if (!DocumentTypeEnum.FOLDER.equals(targetDocument.getType())){
             // 目标不是文件夹类型
-            throw new FastRunTimeException(ErrorEnum.不是文件夹类型);
+            throw new FastRunTimeException(ErrorEnum.文件类型错误);
         }
         if (targetDocument.getDataIsDeleted()){
             // 文件夹已被删除
@@ -242,7 +274,7 @@ public class DocumentServiceImpl {
             for (Document folder: folders){
                 if (request.getTargetFolderId().equals(folder.getId())){
                     log.info("不能移动到子文件夹");
-                    throw new FastRunTimeException(ErrorEnum.不能移动到子文件夹);
+                    throw new FastRunTimeException(ErrorEnum.不能移动文件);
                 }
             }
         }
@@ -275,14 +307,14 @@ public class DocumentServiceImpl {
      * 删除文件/文件夹
      * */
     @Transactional
-    public void deleteDataRoom(Long dataRoomId, Long accountId, Long tenantId){
+    public DeleteDocumentResponse deleteDocument(Long documentId, Long accountId){
         // 查询dataRoom（如果是文件夹还要遍历删除子文件夹和文件）
-        Document document = documentMapper.selectById(dataRoomId);
+        Document document = documentMapper.selectById(documentId);
         if (ObjectUtils.isEmpty(document)){
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (document.getTenantId() != tenantId){
+        if (!document.getOperationAccountId().equals(accountId)){
             // 目标文件不是你的文件
             throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
         }
@@ -295,21 +327,31 @@ public class DocumentServiceImpl {
             throw new FastRunTimeException(ErrorEnum.根目录不能被删除);
         }
         // 递归删除子文件
-        this.recursiveDelete(dataRoomId);
+        this.recursiveDelete(documentId);
         // 删除当前目录
         UpdateWrapper<Document> wrapper = new UpdateWrapper<>();
-        wrapper.lambda().eq(Document::getId,dataRoomId)
+        wrapper.lambda().eq(Document::getId,documentId)
                 .set(Document::getDataIsDeleted,true).set(Document::getOperationAccountId, accountId);
         documentMapper.update(null, wrapper);
+        // 添加删除回滚记录
+        DocumentUndoLog documentUndoLog = new DocumentUndoLog();
+        documentUndoLog.setDocumentId(documentId);
+        documentUndoLog.setDocumentType(document.getType());
+        documentUndoLog.setDocumentOperationType(DocumentOperationTypeEnum.DELETE);
+        documentUndoLog.setOperationAccountId(accountId);
+        documentUndoLogMapper.insert(documentUndoLog);
+        DeleteDocumentResponse response = new DeleteDocumentResponse();
+        response.setDocumentUndoLogId(documentUndoLog.getId());
+        return response;
     }
 
     /**
      * 递归删除
      * */
-    private void recursiveDelete(Long dataRoomId){
+    private void recursiveDelete(Long documentId){
         // 判断是否存在子目录
         QueryWrapper<Document> queryWrapper = new QueryWrapper<>();
-        queryWrapper.lambda().eq(Document::getParentId, dataRoomId).eq(Document::getDataIsDeleted, false);
+        queryWrapper.lambda().eq(Document::getParentId, documentId).eq(Document::getDataIsDeleted, false);
         List<Document> documents = documentMapper.selectList(queryWrapper);
         // 子目录不为空继续删除
         if (!ObjectUtils.isEmpty(documents)){
@@ -319,7 +361,7 @@ public class DocumentServiceImpl {
                 }
             });
             UpdateWrapper<Document> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.lambda().eq(Document::getParentId, dataRoomId).set(Document::getDataIsDeleted, false);
+            updateWrapper.lambda().eq(Document::getParentId, documentId).set(Document::getDataIsDeleted, false);
             documentMapper.update(null, updateWrapper);
         }
     }
@@ -339,20 +381,20 @@ public class DocumentServiceImpl {
      * 恢复删除
      * */
     @Transactional
-    public void restoreDelete(Long dataRoomId, Long tenantId){
+    public void restoreDelete(Long dataRoomId, Long accountId){
         // 查询被删除的文件是否属于这个tenant
         QueryWrapper<Document> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(Document::getId, dataRoomId).eq(Document::getDataIsDeleted, true).eq(Document::getTenantId, tenantId);
+        wrapper.lambda().eq(Document::getId, dataRoomId).eq(Document::getDataIsDeleted, true).eq(Document::getOperationAccountId, accountId);
         Document document = documentMapper.selectOne(wrapper);
         if (ObjectUtils.isEmpty(document)){
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
         // 判断父级文件夹是否存在
         QueryWrapper<Document> parentDataRoomWrapper = new QueryWrapper<>();
-        parentDataRoomWrapper.lambda().eq(Document::getId, document.getParentId()).eq(Document::getDataIsDeleted, false).eq(Document::getTenantId, tenantId);
+        parentDataRoomWrapper.lambda().eq(Document::getId, document.getParentId()).eq(Document::getDataIsDeleted, false).eq(Document::getOperationAccountId, accountId);
         Document parentDocument = documentMapper.selectOne(parentDataRoomWrapper);
         if (ObjectUtils.isEmpty(parentDocument)){
-            throw new FastRunTimeException(ErrorEnum.原有父级文件夹不存在);
+            throw new FastRunTimeException(ErrorEnum.父级文件夹不存在);
         }
         // 恢复删除文件
         UpdateWrapper<Document> updateWrapper = new UpdateWrapper<>();
@@ -510,6 +552,34 @@ public class DocumentServiceImpl {
             // 文件下载失败
             log.info("文件下载失败，file:{},accountId:{}",fileId,accountId);
             throw new FastRunTimeException(ErrorEnum.下载失败);
+        }
+    }
+
+    /**
+     * 回滚
+     * */
+    public void rollbackByUndoLog(RollbackByUndoLogRequest request){
+        if (ObjectUtils.isEmpty(request.getUndoLogId()) || ObjectUtils.isEmpty(request.getAccountId())){
+            throw new FastRunTimeException(ErrorEnum.参数不正确);
+        }
+        DocumentUndoLog documentUndoLog = documentUndoLogMapper.selectById(request.getUndoLogId());
+        if (ObjectUtils.isEmpty(documentUndoLog) || documentUndoLog.getDataIsDeleted()){
+            // 回滚记录不存在或已被删除
+            throw new FastRunTimeException(ErrorEnum.参数不正确);
+        }
+        switch (documentUndoLog.getDocumentOperationType()){
+            case DELETE:
+                // 回滚删除操作
+                this.restoreDelete(documentUndoLog.getDocumentId(), request.getAccountId());
+                break;
+            case MOVE:
+                // 回滚移动操作
+                MoveDocumentRequest moveDocumentRequest = new MoveDocumentRequest();
+                moveDocumentRequest.setAccountId(request.getAccountId());
+                moveDocumentRequest.setFolderId(documentUndoLog.getDocumentId());
+                moveDocumentRequest.setTargetFolderId(documentUndoLog.getDocumentParentId());
+                this.moveDocument(moveDocumentRequest);
+                break;
         }
     }
 

@@ -4,7 +4,7 @@
 
 1、请先参阅 **[环境变量及说明](https://github.com/delaywork/meta-service-api#%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%8F%8A%E8%AF%B4%E6%98%8E)** 配置好环境变量。
 
-2、初始化数据库，执行 **resource/sql** 文件夹下的 SQL 脚本。
+2、初始化数据库，执行 **[resource/sql](https://github.com/delaywork/meta-service-api/tree/main/src/main/resources/sql)** 文件夹下的 SQL 脚本。
 
 3、启动项目。
 

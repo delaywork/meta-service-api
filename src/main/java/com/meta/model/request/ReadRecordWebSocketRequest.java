@@ -1,5 +1,6 @@
 package com.meta.model.request;
 
+import com.meta.model.enums.SourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
@@ -8,17 +9,17 @@ import lombok.experimental.Tolerate;
 @Builder
 public class ReadRecordWebSocketRequest {
 
-    // 阅读记录
-    private Long readScheduleId;
+    // 阅读源 id
+    private Long sourceId;
 
-    // 阅读次数
-    private Long readTimeId;
+    // 阅读源类型
+    private SourceTypeEnum sourceType;
 
     // 当前阅读页
-    private Integer currentPage;
+    private Long pageIndex;
 
-    // 阅读时长
-    private Long times;
+    // 阅读人的 token
+    private String authorization;
 
     @Tolerate
     public ReadRecordWebSocketRequest(){}

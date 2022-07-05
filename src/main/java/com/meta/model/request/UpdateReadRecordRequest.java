@@ -2,30 +2,34 @@ package com.meta.model.request;
 
 import com.meta.model.enums.AccountTypeEnum;
 import com.meta.model.enums.ShareSourceTypeEnum;
+import com.meta.model.enums.SourceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
 
+import java.sql.Timestamp;
+
 @Data
 @Builder
-public class UpdateReadTimeRequest {
-
-    // 主键ID
-    private Long id;
+public class UpdateReadRecordRequest {
 
     // 阅读源 id
     private Long sourceId;
 
     // 阅读源类型
-    private ShareSourceTypeEnum sourceType;
-
-    private String readContent;
+    private SourceTypeEnum sourceType;
 
     // 开始阅读时间
-    private Long startTime;
+    private Timestamp startTime;
+
+    // 阅读时长
+    private Long times;
 
     // 当前阅读页码
-    private Integer currentPage;
+    private Long pageIndex;
+
+    // 关联的长链接id
+    private String webSocketSessionId;
 
     // 阅读人员 id
     private Long accountId;
@@ -34,5 +38,5 @@ public class UpdateReadTimeRequest {
     private AccountTypeEnum accountType;
 
     @Tolerate
-    public UpdateReadTimeRequest(){}
+    public UpdateReadRecordRequest(){}
 }

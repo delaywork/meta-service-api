@@ -8,9 +8,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.meta.model.BaseModel;
 import com.meta.model.enums.AccountTypeEnum;
 import com.meta.model.enums.ShareSourceTypeEnum;
+import com.meta.model.enums.SourceTypeEnum;
+import com.meta.model.pojo.handler.ReadTimeDetailJsonArrayHandler;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Tolerate;
+
+import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
@@ -19,7 +24,7 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-@TableName(value="read_times")
+@TableName(value="read_times", autoResultMap = true)
 public class ReadTime extends BaseModel {
 
     // 主键ID 使用雪花算法生成
@@ -34,19 +39,23 @@ public class ReadTime extends BaseModel {
 
     // 阅读源类型
     @TableField(value = "source_type")
-    private ShareSourceTypeEnum sourceType;
+    private SourceTypeEnum sourceType;
 
     // 开始阅读时间
     @TableField(value = "start_time")
-    private Long startTime;
+    private Timestamp startTime;
 
     // 阅读时长 (单位：秒)
     @TableField(value = "read_time")
     private Long readTime;
 
     // 主要阅读页码 (使用 json 序列化形式存储，json: {页码：时长 (单位：秒)})
-    @TableField(value = "read_content")
-    private String readContent;
+    @TableField(value = "detail", typeHandler = ReadTimeDetailJsonArrayHandler.class)
+    private List<ReadTimeDetail> detail;
+
+    // 关联的长链接 session id
+    @TableField(value = "web_socket_session_id")
+    private String webSocketSessionId;
 
     // 阅读人员 id
     @TableField(value = "account_id")
