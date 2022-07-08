@@ -66,7 +66,7 @@ public class DocumentController {
      * WeChat 新增文件
      * */
     @PostMapping("/wx/documents")
-    public ReturnData wxAddFile(@RequestHeader(value = "authorization") String token, @RequestPart("file") MultipartFile file,
+    public ReturnData wxAddFile(@RequestHeader(value = "authorization") String token, @RequestParam("file") MultipartFile file,
                               @RequestParam("parentId") Long parentId, @RequestParam(value = "name",required = false) String name,
                               @RequestParam(value = "comments",required = false) String comments){
         try{
