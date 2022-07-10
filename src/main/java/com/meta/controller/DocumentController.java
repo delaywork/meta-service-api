@@ -3,6 +3,7 @@ package com.meta.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.meta.model.*;
+import com.meta.model.enums.ReadTypeEnum;
 import com.meta.model.pojo.Account;
 import com.meta.model.pojo.Document;
 import com.meta.model.request.*;
@@ -17,11 +18,14 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -65,10 +69,42 @@ public class DocumentController {
     /**
      * WeChat 新增文件
      * */
-    @PostMapping("/wx/documents")
+    @PostMapping("/wx/documents1")
     public ReturnData wxAddFile(@RequestHeader(value = "authorization") String token, @RequestParam("file") MultipartFile file,
                               @RequestParam("parentId") Long parentId, @RequestParam(value = "name",required = false) String name,
                               @RequestParam(value = "comments",required = false) String comments){
+        try{
+            MetaClaims claims = oauthJWTUtil.getClaims(token);
+            AddDocumentRequest addDocumentRequest = new AddDocumentRequest();
+            addDocumentRequest.setParentId(parentId);
+            addDocumentRequest.setDocument(file);
+            addDocumentRequest.setAccountId(claims.getAccountId());
+            addDocumentRequest.setName(name);
+            addDocumentRequest.setComments(comments);
+            documentService.addFile(addDocumentRequest);
+            return ReturnData.success();
+        }catch (FastRunTimeException fastRunTimeException){
+            return ReturnData.failed(fastRunTimeException);
+        }
+    }
+
+    @PostMapping(value = "/wx/documents2")
+    public ReturnData wechatUpload(
+            @RequestHeader(value = "authorization") String token,
+            @RequestParam(value = "file_type", required = false) String fileType,
+            @RequestParam(value = "path_id", required = false) String pathId,
+            @RequestParam(value = "file_key", required = false) String fileKey,
+            @RequestParam("parentId") Long parentId,
+            @RequestParam(value = "name",required = false) String name,
+            @RequestParam(value = "comments",required = false) String comments,
+            HttpServletRequest httpServletRequest
+    ) {
+        log.info("fileType:{},pathId:{},fileKey:{}",fileType,pathId,fileKey);
+        MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) httpServletRequest;
+        MultipartFile file = multipartHttpServletRequest.getFile(fileKey);
+        if (StringUtils.isBlank(name)){
+            name = file.getName();
+        }
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             AddDocumentRequest addDocumentRequest = new AddDocumentRequest();
@@ -224,13 +260,16 @@ public class DocumentController {
 
     /**
      * 查询文件
+     * @Params
+     * type: 查看原始文件还是水印文件
      * */
     @GetMapping("/documents/{documentId}")
-    public void getDocument(HttpServletResponse response, @RequestHeader("authorization") String token, @PathVariable("documentId") Long documentId) throws IOException {
+    public void getDocument(HttpServletResponse response, @RequestHeader("authorization") String token, @PathVariable("documentId") Long documentId, @RequestParam(name = "type", required = false)ReadTypeEnum type) throws IOException {
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             Document document = documentService.getFile(documentId, claims.getAccountId());
             if (ObjectUtils.isNotEmpty(document)) {
+
                 String downloadFileName = document.getName();
                 downloadFileName = URLEncoder.encode(downloadFileName, "utf-8").replace("+", "%20");
                 response.setHeader("content-disposition", "attachment;filename*=UTF-8''" + downloadFileName);

@@ -90,6 +90,7 @@ public class DocumentServiceImpl {
         if (ObjectUtils.isEmpty(request.getDocument()) || ObjectUtils.isEmpty(request.getParentId())){
             throw new FastRunTimeException(ErrorEnum.参数不正确);
         }
+//        request.getDocument().getContentType()
         // 获取文件名
         if (ObjectUtils.isEmpty(request.getName())){
             String name = request.getDocument().getOriginalFilename().replace(" ","");
