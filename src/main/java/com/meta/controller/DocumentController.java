@@ -30,8 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @Log4j2
 @RestController
@@ -70,9 +69,20 @@ public class DocumentController {
      * WeChat 新增文件
      * */
     @PostMapping("/wx/documents1")
-    public ReturnData wxAddFile(@RequestHeader(value = "authorization") String token, @RequestParam("file") MultipartFile file,
-                              @RequestParam("parentId") Long parentId, @RequestParam(value = "name",required = false) String name,
-                              @RequestParam(value = "comments",required = false) String comments){
+    public ReturnData wxAddFile(@RequestHeader(value = "authorization") String token,
+                                @RequestParam(value = "file", required = false) MultipartFile file,
+                                @RequestParam("parentId") Long parentId,
+                                @RequestParam(value = "name",required = false) String name,
+                                @RequestParam(value = "comments",required = false) String comments,
+                                HttpServletRequest httpServletRequest){
+
+        Map<String, String[]> map = httpServletRequest.getParameterMap();
+        Set<Map.Entry<String, String[]>> keys = map.entrySet();
+        Iterator<Map.Entry<String, String[]>> it = keys.iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String[]> itMap = it.next();
+            log.info("参数--" + itMap.getKey() + ":" + Arrays.toString(itMap.getValue()));
+        };
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             AddDocumentRequest addDocumentRequest = new AddDocumentRequest();
