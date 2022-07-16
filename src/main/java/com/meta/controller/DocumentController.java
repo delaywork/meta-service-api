@@ -68,7 +68,7 @@ public class DocumentController {
     /**
      * WeChat 新增文件
      * */
-    @PostMapping("/wx/documents1")
+    @PostMapping("/wx/documents")
     public ReturnData wxAddFile(@RequestHeader(value = "authorization") String token,
                                 @RequestParam(value = "file", required = false) MultipartFile file,
                                 @RequestParam("parentId") Long parentId,
@@ -82,38 +82,6 @@ public class DocumentController {
         while (it.hasNext()) {
             Map.Entry<String, String[]> itMap = it.next();
             log.info("参数--" + itMap.getKey() + ":" + Arrays.toString(itMap.getValue()));
-        };
-        try{
-            MetaClaims claims = oauthJWTUtil.getClaims(token);
-            AddDocumentRequest addDocumentRequest = new AddDocumentRequest();
-            addDocumentRequest.setParentId(parentId);
-            addDocumentRequest.setDocument(file);
-            addDocumentRequest.setAccountId(claims.getAccountId());
-            addDocumentRequest.setName(name);
-            addDocumentRequest.setComments(comments);
-            documentService.addFile(addDocumentRequest);
-            return ReturnData.success();
-        }catch (FastRunTimeException fastRunTimeException){
-            return ReturnData.failed(fastRunTimeException);
-        }
-    }
-
-    @PostMapping(value = "/wx/documents2")
-    public ReturnData wechatUpload(
-            @RequestHeader(value = "authorization") String token,
-            @RequestParam(value = "file_type", required = false) String fileType,
-            @RequestParam(value = "path_id", required = false) String pathId,
-            @RequestParam(value = "file_key", required = false) String fileKey,
-            @RequestParam("parentId") Long parentId,
-            @RequestParam(value = "name",required = false) String name,
-            @RequestParam(value = "comments",required = false) String comments,
-            HttpServletRequest httpServletRequest
-    ) {
-        log.info("fileType:{},pathId:{},fileKey:{}",fileType,pathId,fileKey);
-        MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) httpServletRequest;
-        MultipartFile file = multipartHttpServletRequest.getFile(fileKey);
-        if (StringUtils.isBlank(name)){
-            name = file.getName();
         }
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
@@ -129,7 +97,6 @@ public class DocumentController {
             return ReturnData.failed(fastRunTimeException);
         }
     }
-
 
     /**
      * 新增文件夹
