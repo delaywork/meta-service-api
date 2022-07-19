@@ -58,7 +58,7 @@ public class QiuUtil {
         int index = fileName.lastIndexOf(".");
         String fileNamePrefix = fileName.substring(0, index);
         String fileNameSuffix = fileName.substring(index);
-        String key = fileNamePrefix+IdUtil.simpleUUID()+fileNameSuffix;
+        String key = IdUtil.simpleUUID()+fileNameSuffix;
         try {
             Response response = uploadManager.put(file.getInputStream(),key,upToken,null, null);
             //解析上传成功的结果
