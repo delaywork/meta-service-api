@@ -38,11 +38,9 @@ public class TokenFilter extends OncePerRequestFilter {
             boolean access_token=false;
             boolean authorization=false;
             if(request.getParameter("access_token")==null){
-                log.info("接口 {} 未携带 access_token", uri);
                 access_token=true;
             }
             if(request.getHeader("Authorization")==null){
-                log.info("接口 {} 未携带 Authorization", uri);
                 authorization=true;
             }else{
                 if(!request.getHeader("Authorization").startsWith("Bearer") && !request.getHeader("Authorization").startsWith("bearer")){
@@ -51,6 +49,7 @@ public class TokenFilter extends OncePerRequestFilter {
                 }
             }
             if(access_token&&authorization){
+                log.info("access token and authorization is not exist");
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write(JSONObject.toJSONString(ReturnData.failed(new FastRunTimeException(ErrorEnum.token异常))));
             }else{
