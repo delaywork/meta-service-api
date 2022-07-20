@@ -17,14 +17,21 @@ import com.meta.utils.*;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -245,25 +252,41 @@ public class DocumentController {
         try{
             MetaClaims claims = oauthJWTUtil.getClaims(token);
             Document document = documentService.getFile(documentId, claims.getAccountId());
+            log.info("Get documents, documentId:{}, type:{}", documentId, type);
             if (ObjectUtils.isNotEmpty(document)) {
-
                 String downloadFileName = document.getName();
                 downloadFileName = URLEncoder.encode(downloadFileName, "utf-8").replace("+", "%20");
                 response.setHeader("content-disposition", "attachment;filename*=UTF-8''" + downloadFileName);
                 response.setCharacterEncoding("utf-8");
-                // 把结果写进 response
-                StringBuilder watermarkTextBuilder = new StringBuilder();
-                Account account = accountService.getAccountById(claims.getAccountId());
-                watermarkTextBuilder.append(account.getName());
-                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-                if (ObjectUtils.isNotEmpty(account.getTimeZone())){
-                    String data = TimeZoneFormatUtil.format(timestamp, account.getTimeZone());
-                    watermarkTextBuilder.append(" ").append(data);
+                if (ObjectUtils.isNotEmpty(type) && ReadTypeEnum.ORIGINAL.equals(type)){
+                    if (!document.getOperationAccountId().equals(claims.getAccountId())){
+                        // 目标文件不是你的文件
+                        throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
+                    }
+                    // 获取原始版本
+                    HttpGet get = new HttpGet(document.getUrl());
+                    CloseableHttpClient client = HttpClients.createDefault();
+                    CloseableHttpResponse httpResponse = client.execute(get);
+                    byte[] fileData = EntityUtils.toByteArray(httpResponse.getEntity());
+                    IOUtils.closeQuietly(httpResponse);
+                    IOUtils.closeQuietly(client);
+                    ServletOutputStream outputStream = response.getOutputStream();
+                    outputStream.write(fileData);
                 }else{
-                    String data = TimeZoneFormatUtil.format(timestamp);
-                    watermarkTextBuilder.append(" ").append(data);
+                    // 获取水印版本
+                    StringBuilder watermarkTextBuilder = new StringBuilder();
+                    Account account = accountService.getAccountById(claims.getAccountId());
+                    watermarkTextBuilder.append(account.getName());
+                    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                    if (ObjectUtils.isNotEmpty(account.getTimeZone())){
+                        String data = TimeZoneFormatUtil.format(timestamp, account.getTimeZone());
+                        watermarkTextBuilder.append(" ").append(data);
+                    }else{
+                        String data = TimeZoneFormatUtil.format(timestamp);
+                        watermarkTextBuilder.append(" ").append(data);
+                    }
+                    PdfUtil.manipulatePdf(document.getUrl(), response.getOutputStream(), watermarkTextBuilder.toString());
                 }
-                PdfUtil.manipulatePdf(document.getUrl(), response.getOutputStream(), watermarkTextBuilder.toString());
             }
         }catch (FastRunTimeException fastRunTimeException){
             response.setContentType("application/json;charset=UTF-8");
@@ -275,26 +298,4 @@ public class DocumentController {
         }
     }
 
-    @ApiOperation("根据id查询文件")
-    @PostMapping("/get/file")
-    public ReturnData<Document> getFile(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
-        try{
-            // TODO 查询历史版本
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(documentService.getFile(request.getId(), biteClaims.getAccountId()));
-        }catch (FastRunTimeException fastRunTimeException){
-            return ReturnData.failed(fastRunTimeException);
-        }
-    }
-
-    @ApiOperation("下载文件")
-    @PostMapping("/download/file")
-    public ReturnData<String> downloadPrivate(@RequestBody @ApiParam(value = "dataRoomId") IdRequest request, @RequestHeader(value = "AccessToken") String token){
-        try{
-            BiteClaims biteClaims = JWTUtil.checkToken(token);
-            return ReturnData.success(documentService.downloadPrivate(request.getId(), biteClaims.getAccountId()));
-        }catch (FastRunTimeException fastRunTimeException){
-            return ReturnData.failed(fastRunTimeException);
-        }
-    }
 }

@@ -524,36 +524,8 @@ public class DocumentServiceImpl {
             // 文件不存在
             throw new FastRunTimeException(ErrorEnum.文件不存在);
         }
-        if (!document.getOperationAccountId().equals(accountId)){
-            // 目标文件不是你的文件
-            throw new FastRunTimeException(ErrorEnum.没有文件操作权限);
-        }
         document.setUrl(qiuUtil.downloadPrivate(document.getUrl()));
         return document;
-    }
-
-    /**
-     * 列表查询文件/文件夹
-     * */
-
-    /**
-     * 下载文件
-     * */
-    public String downloadPrivate(Long fileId, Long accountId){
-        // 查询文件
-        Document file = this.getFile(fileId, accountId);
-        if (StringUtils.isEmpty(file.getUrl())){
-            // 文件不存在有效地址
-            throw new FastRunTimeException(ErrorEnum.文件不存在有效地址);
-        }
-        try{
-            String url = qiuUtil.downloadPrivate(file.getUrl());
-            return url;
-        }catch (Exception e){
-            // 文件下载失败
-            log.info("文件下载失败，file:{},accountId:{}",fileId,accountId);
-            throw new FastRunTimeException(ErrorEnum.下载失败);
-        }
     }
 
     /**
