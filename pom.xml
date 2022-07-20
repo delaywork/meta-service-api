@@ -88,11 +88,7 @@
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>1.12.215</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>software.amazon.awssdk</groupId>-->
-<!--            <artifactId>s3-transfer-manager</artifactId>-->
-<!--            <version>2.17.16-PREVIEW</version>-->
-<!--        </dependency>-->
+
 
 
         <!--  redis -->
