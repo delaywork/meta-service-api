@@ -173,16 +173,13 @@ public class PdfUtil {
         FileItem item = factory.createItem("textField", "text/plain", true, file.getName());
         int bytesRead = 0;
         byte[] buffer = new byte[8192];
-        try {
-            FileInputStream fis = new FileInputStream(file);
-            OutputStream os = item.getOutputStream();
+        try(FileInputStream fis = new FileInputStream(file);
+            OutputStream os = item.getOutputStream()){
             while ((bytesRead = fis.read(buffer, 0, 8192)) != -1) {
                 os.write(buffer, 0, bytesRead);
             }
-            os.close();
-            fis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException e){
+
         }
         return item;
     }
